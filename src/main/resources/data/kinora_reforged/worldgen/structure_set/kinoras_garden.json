@@ -1,0 +1,14 @@
+{
+  "structures": [
+    {
+      "structure": "kinora_reforged:kinoras_garden",
+      "weight": 1
+    }
+  ],
+  "placement": {
+    "type": "minecraft:random_spread",
+    "spacing": 300,
+    "separation": 250,
+    "salt": 1922957756
+  }
+}

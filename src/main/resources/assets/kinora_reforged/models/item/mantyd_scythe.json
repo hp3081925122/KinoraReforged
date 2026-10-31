@@ -1,0 +1,7 @@
+{
+  "parent": "kinora_reforged:custom/scythemantiscla",
+  "textures": {
+    "0": "kinora_reforged:block/scythemantisclatexture",
+    "particle": "kinora_reforged:item/nothing"
+  }
+}

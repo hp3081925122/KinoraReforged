@@ -1,0 +1,6 @@
+{
+  "parent": "item/handheld",
+  "textures": {
+    "layer0": "kinora_reforged:item/mantydflute"
+  }
+}

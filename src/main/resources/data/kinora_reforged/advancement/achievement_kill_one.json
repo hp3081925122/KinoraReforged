@@ -1,0 +1,29 @@
+{
+  "display": {
+    "icon": {
+      "id": "kinora_reforged:ancestral_bag"
+    },
+    "title": {
+      "translate": "advancements.achievement_kill_one.title"
+    },
+    "description": {
+      "translate": "advancements.achievement_kill_one.descr"
+    },
+    "frame": "challenge",
+    "show_toast": true,
+    "announce_to_chat": true,
+    "hidden": false
+  },
+  "criteria": {
+    "achievement_kill_one_0": {
+      "trigger": "minecraft:impossible"
+    }
+  },
+  "rewards": {
+    "experience": 100,
+    "recipes": [
+      "kinora_reforged:mantydmedicinerecipe"
+    ]
+  },
+  "parent": "minecraft:story/root"
+}

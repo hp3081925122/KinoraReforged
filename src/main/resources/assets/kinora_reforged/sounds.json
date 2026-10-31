@@ -1,0 +1,50 @@
+{
+  "kinorabosstheme": {
+    "sounds": [
+      {
+        "name": "kinora_reforged:mantydbossmusic",
+        "stream": true
+      }
+    ]
+  },
+  "mantydintrofight": {
+    "sounds": [
+      {
+        "name": "kinora_reforged:mantydintrobetter",
+        "stream": false
+      }
+    ]
+  },
+  "kinoraintrobetter": {
+    "sounds": [
+      {
+        "name": "kinora_reforged:kinoraintrobetter",
+        "stream": false
+      }
+    ]
+  },
+  "mantydflutesound": {
+    "sounds": [
+      {
+        "name": "kinora_reforged:flute",
+        "stream": false
+      }
+    ]
+  },
+  "mantydtalk1": {
+    "sounds": [
+      {
+        "name": "kinora_reforged:mantydtalk1",
+        "stream": false
+      }
+    ]
+  },
+  "mantydtalk2": {
+    "sounds": [
+      {
+        "name": "kinora_reforged:mantydtalk2",
+        "stream": false
+      }
+    ]
+  }
+}
