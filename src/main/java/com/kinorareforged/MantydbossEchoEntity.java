@@ -63,7 +63,14 @@ public final class MantydbossEchoEntity extends KinoraGeoPathfinder {
             }
             level().playSound(null, blockPosition(), SoundEvents.GENERIC_EXPLODE.value(), SoundSource.NEUTRAL, 2.0F, 0.6F);
             if (level() instanceof net.minecraft.server.level.ServerLevel server) {
-                server.sendParticles(ParticleTypes.SWEEP_ATTACK, getX(), getY(), getZ(), 300, 6.0D, 0.2D, 6.0D, 0.01D);
+                net.minecraft.world.phys.Vec3 center = position().add(0.0D, 1.2D, 0.0D);
+                for (int i = 0; i < 4; i++) {
+                    KinoraFx.echoSlash(server, center, getYRot() + i * 90.0F + 45.0F, (i % 2 == 0 ? 10.0F : -10.0F), 7.0F, 9);
+                }
+                KinoraFx.echoRing(server, position().add(0.0D, 0.08D, 0.0D), 10.0F, 16);
+                KinoraFx.echoRing(server, position().add(0.0D, 0.1D, 0.0D), 6.0F, 11);
+                KinoraFx.sparks(server, center, 8, 2.0D);
+                KinoraFx.shake(server, this, 24.0D, 1.5F, 10);
             }
         }
         if (echoAge >= 95) {

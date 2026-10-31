@@ -11,7 +11,10 @@ public final class KinoraReforged {
 
     public KinoraReforged(IEventBus modBus, ModContainer container) {
         container.registerConfig(net.neoforged.fml.config.ModConfig.Type.COMMON, KinoraConfig.SPEC, "kinora_reforged-boss.toml");
+        container.registerConfig(net.neoforged.fml.config.ModConfig.Type.CLIENT, KinoraClientConfig.SPEC, "kinora_reforged-client.toml");
         ModSounds.SOUNDS.register(modBus);
+        ModParticles.register(modBus);
+        modBus.addListener(KinoraNetwork::register);
         ModItems.ARMOR_MATERIALS.register(modBus);
         ModItems.ITEMS.register(modBus);
         ModCreativeTabs.TABS.register(modBus);
@@ -26,6 +29,9 @@ public final class KinoraReforged {
             modBus.addListener(com.kinorareforged.client.KinoraReforgedClient::registerScreens);
             modBus.addListener(com.kinorareforged.client.MantydHelmetModel::registerLayers);
             modBus.addListener(com.kinorareforged.client.MantydHelmetModel::registerClientExtensions);
+            modBus.addListener(com.kinorareforged.client.KinoraParticles::register);
+            net.neoforged.neoforge.common.NeoForge.EVENT_BUS.addListener(com.kinorareforged.client.KinoraCameraShake::clientTick);
+            net.neoforged.neoforge.common.NeoForge.EVENT_BUS.addListener(com.kinorareforged.client.KinoraCameraShake::computeAngles);
         }
     }
 

@@ -202,52 +202,141 @@ public final class BossMantydEntity extends KinoraGeoMonster {
     }
 
     private void tickAttack(LivingEntity target) {
+        net.minecraft.server.level.ServerLevel server = level() instanceof net.minecraft.server.level.ServerLevel serverLevel ? serverLevel : null;
         switch (attackType) {
             case "fourth" -> {
+                if (attackAge == 1 && server != null) KinoraFx.warn(server, ground(), 4.0F, 19);
                 if (attackAge >= 20 && attackAge <= 30 && (attackAge - 20) % 2 == 0) {
-                    areaDamage(4.0D, 12.0D, 100, 2.0D, 0.2D, 2.0D, false, 1.6F);
+                    areaDamage(4.0D, 12.0D, false, 1.6F);
+                    if (server != null) {
+                        int hit = (attackAge - 20) / 2;
+                        float side = hit % 2 == 0 ? 1.0F : -1.0F;
+                        KinoraFx.slash(server, KinoraFx.front(this, 1.2D, 1.4D + hit * 0.12D), getYRot() + side * (15.0F + random.nextFloat() * 25.0F), side * (25.0F + random.nextFloat() * 30.0F), 3.4F, 7);
+                        KinoraFx.sparks(server, KinoraFx.front(this, 2.2D, 1.5D), 2, 0.6D);
+                        if (hit == 5) {
+                            KinoraFx.ring(server, ground(), 4.0F, 10);
+                            KinoraFx.petals(server, KinoraFx.front(this, 1.5D, 1.2D), 14, 0.8D, 0.4D, 0.18D);
+                        }
+                    }
                 }
                 if (attackAge >= 45) finishAttack();
             }
             case "wind" -> {
-                if (attackAge == 20) areaDamage(5.5D, 20.0D, 200, 3.0D, 0.2D, 3.0D, true, 1.4F);
-                if (attackAge == 33) areaDamage(8.0D, 20.0D, 300, 5.0D, 0.2D, 5.0D, true, 1.4F);
+                if (attackAge == 1 && server != null) KinoraFx.warn(server, ground(), 5.5F, 19);
+                if (attackAge == 20) {
+                    areaDamage(5.5D, 20.0D, true, 1.4F);
+                    windBurst(server, 5.5F, false);
+                    if (server != null) KinoraFx.warn(server, ground(), 8.0F, 11);
+                }
+                if (attackAge == 31) {
+                    areaDamage(8.0D, 20.0D, true, 1.4F);
+                    windBurst(server, 8.0F, true);
+                }
                 if (attackAge >= 45) finishAttack();
             }
             case "drohend" -> {
+                if (server != null && attackAge < 60 && attackAge % 10 == 0) {
+                    KinoraFx.ring(server, ground(), 2.6F, 12);
+                    KinoraFx.petals(server, position().add(0.0D, 1.6D, 0.0D), 5, 1.2D, 0.8D, 0.04D);
+                    KinoraFx.sparks(server, position().add(0.0D, 2.0D, 0.0D), 2, 1.0D);
+                }
                 if (attackAge == 60) {
                     setAnimation("empty");
                     setDeltaMovement(0.0D, 0.6D, 0.0D);
+                    if (server != null) KinoraFx.ring(server, ground(), 3.0F, 10);
                 }
                 if (attackAge == 70) {
                     spawnParticles(ParticleTypes.POOF, 70, 0.1D, 0.3D, 0.1D, 0.4D);
+                    if (server != null) KinoraFx.petals(server, position().add(0.0D, 1.0D, 0.0D), 20, 0.6D, 0.6D, 0.25D);
                     if (target != null && target.isAlive()) dashToward(target);
                 }
-                if (attackAge == 80) setAnimation("attackdash");
-                if (attackAge == 102) areaDamage(4.0D, 14.0D, 100, 2.0D, 0.2D, 2.0D, false, 1.6F);
+                if (attackAge == 80) {
+                    setAnimation("attackdash");
+                    if (server != null) KinoraFx.warn(server, ground(), 4.0F, 19);
+                }
+                if (attackAge == 99) {
+                    areaDamage(4.0D, 14.0D, false, 1.6F);
+                    if (server != null) {
+                        Vec3 pos = KinoraFx.front(this, 1.4D, 1.3D);
+                        KinoraFx.slash(server, pos, getYRot() - 20.0F, 40.0F, 4.0F, 8);
+                        KinoraFx.slash(server, pos, getYRot() + 20.0F, -40.0F, 4.0F, 8);
+                        KinoraFx.ring(server, ground(), 4.5F, 12);
+                        KinoraFx.sparks(server, pos, 6, 1.0D);
+                        KinoraFx.petals(server, pos, 18, 0.8D, 0.4D, 0.2D);
+                        KinoraFx.shake(server, this, 24.0D, 1.6F, 8);
+                    }
+                }
                 if (attackAge >= 115) finishAttack();
             }
             case "slither" -> {
-                if (attackAge == 27 || attackAge == 87 || attackAge == 147) {
-                    areaDamage(5.5D, 16.0D, 200, 3.0D, 0.2D, 3.0D, true, 1.6F);
+                int cycle = attackAge % 60;
+                if (attackAge > 0 && cycle == 0 && attackAge < 180) setAnimation("attackslither");
+                if (cycle == 1 && server != null) KinoraFx.warn(server, ground(), 5.5F, 24);
+                if (cycle == 25) {
+                    areaDamage(5.5D, 16.0D, true, 1.6F);
                     spawnArrows(6);
+                    if (server != null) {
+                        KinoraFx.slash(server, KinoraFx.front(this, 0.8D, 0.5D), getYRot(), 0.0F, 5.5F, 8);
+                        KinoraFx.ring(server, ground(), 5.5F, 12);
+                        KinoraFx.petals(server, KinoraFx.front(this, 2.0D, 0.5D), 22, 1.6D, 0.2D, 0.22D);
+                        KinoraFx.sparks(server, KinoraFx.front(this, 2.5D, 0.6D), 4, 1.2D);
+                        KinoraFx.shake(server, this, 20.0D, 0.8F, 6);
+                    }
                 }
-                if (attackAge == 45 || attackAge == 105 || attackAge == 165) setAnimation("empty");
+                if (cycle == 45) setAnimation("empty");
                 if (attackAge >= 170) finishAttack();
             }
             case "slash" -> {
-                if (attackAge == 18 || attackAge == 38) {
-                    areaDamage(3.5D, 16.0D, 200, 2.0D, 0.2D, 2.0D, true, 1.6F);
+                if (attackAge == 1 && server != null) KinoraFx.warn(server, ground(), 3.5F, 13);
+                if (attackAge == 14 || attackAge == 34) {
+                    areaDamage(3.5D, 16.0D, true, 1.6F);
                     spawnArrows(3);
+                    if (server != null) {
+                        float side = attackAge == 14 ? 1.0F : -1.0F;
+                        KinoraFx.slash(server, KinoraFx.front(this, 1.0D, 1.5D), getYRot() + side * 25.0F, side * 55.0F, 3.8F, 7);
+                        KinoraFx.sparks(server, KinoraFx.front(this, 2.0D, 1.5D), 3, 0.8D);
+                        KinoraFx.petals(server, KinoraFx.front(this, 1.6D, 1.4D), 10, 0.8D, 0.5D, 0.16D);
+                        if (attackAge == 14) KinoraFx.warn(server, ground(), 3.5F, 20);
+                    }
                 }
                 if (attackAge >= 65) finishAttack(false);
             }
             case "jump" -> {
-                if (attackAge == 45) areaDamage(8.0D, 14.0D, 300, 5.0D, 0.2D, 5.0D, false, 0.6F);
+                if (attackAge == 6 && server != null) {
+                    spawnParticles(ParticleTypes.POOF, 30, 1.0D, 0.1D, 1.0D, 0.08D);
+                    KinoraFx.ring(server, ground(), 2.8F, 10);
+                }
+                if (attackAge == 10 && server != null) KinoraFx.warn(server, ground(), 8.0F, 35);
+                if (attackAge == 45) {
+                    areaDamage(8.0D, 14.0D, false, 0.6F);
+                    if (server != null) {
+                        KinoraFx.ring(server, ground(), 8.5F, 14);
+                        KinoraFx.ring(server, ground().add(0.0D, 0.02D, 0.0D), 5.0F, 10);
+                        KinoraFx.petals(server, position().add(0.0D, 0.6D, 0.0D), 50, 2.5D, 0.3D, 0.3D);
+                        KinoraFx.sparks(server, position().add(0.0D, 0.5D, 0.0D), 10, 2.5D);
+                        spawnParticles(ParticleTypes.POOF, 40, 2.0D, 0.1D, 2.0D, 0.12D);
+                        KinoraFx.shake(server, this, 32.0D, 3.0F, 14);
+                    }
+                }
                 if (attackAge >= 65) finishAttack();
             }
             default -> finishAttack();
         }
+    }
+
+    private void windBurst(net.minecraft.server.level.ServerLevel server, float size, boolean heavy) {
+        if (server == null) return;
+        Vec3 pos = position().add(0.0D, 1.2D, 0.0D);
+        KinoraFx.slash(server, pos, getYRot() + 90.0F, heavy ? 8.0F : -8.0F, size, 8);
+        KinoraFx.slash(server, pos, getYRot() - 90.0F, heavy ? -8.0F : 8.0F, size, 8);
+        KinoraFx.ring(server, ground(), size, 12);
+        KinoraFx.petals(server, pos, heavy ? 36 : 22, size * 0.35D, 0.3D, 0.28D);
+        KinoraFx.sparks(server, pos, heavy ? 6 : 3, size * 0.3D);
+        KinoraFx.shake(server, this, 24.0D, heavy ? 1.4F : 0.7F, heavy ? 9 : 6);
+    }
+
+    private Vec3 ground() {
+        return position().add(0.0D, 0.08D, 0.0D);
     }
 
     private void finishAttack() {
@@ -269,11 +358,10 @@ public final class BossMantydEntity extends KinoraGeoMonster {
         return (float) Math.max(0.0D, base * originalDamage / 40.0D);
     }
 
-    private void areaDamage(double radius, double originalDamage, int particles, double dx, double dy, double dz, boolean sweep, float pitch) {
+    private void areaDamage(double radius, double originalDamage, boolean sweep, float pitch) {
         Vec3 center = position();
         net.minecraft.sounds.SoundEvent sound = sweep ? net.minecraft.sounds.SoundEvents.PLAYER_ATTACK_SWEEP : net.minecraft.sounds.SoundEvents.GENERIC_EXPLODE.value();
         level().playSound(null, blockPosition(), sound, SoundSource.NEUTRAL, 1.5F, pitch);
-        spawnParticles(ParticleTypes.SWEEP_ATTACK, particles, dx, dy, dz, 0.01D);
         for (Player target : level().getEntitiesOfClass(Player.class, new AABB(center, center).inflate(radius))) {
             target.hurt(damageSources().mobAttack(this), skillDamage(originalDamage));
         }
