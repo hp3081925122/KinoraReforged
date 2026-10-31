@@ -20,6 +20,7 @@ public final class KinoraReforged {
         net.neoforged.neoforge.common.NeoForge.EVENT_BUS.addListener(KinoraPlayerEvents::playerTick);
         net.neoforged.neoforge.common.NeoForge.EVENT_BUS.addListener(KinoraCombatEvents::onLivingDeath);
         net.neoforged.neoforge.common.NeoForge.EVENT_BUS.addListener(KinoraTrades::registerWanderingTrades);
+        net.neoforged.neoforge.common.NeoForge.EVENT_BUS.addListener(KinoraTrades::onEntityInteract);
         if (net.neoforged.fml.loading.FMLEnvironment.dist == net.neoforged.api.distmarker.Dist.CLIENT) {
             modBus.addListener(com.kinorareforged.client.KinoraRenderers::register);
             modBus.addListener(com.kinorareforged.client.KinoraReforgedClient::registerScreens);
