@@ -66,13 +66,13 @@ public final class MantydBossSpawnEntity extends KinoraGeoPathfinder {
             }
             level().playSound(null, blockPosition(), ModSounds.KINORA_INTRO_BETTER.get(), SoundSource.NEUTRAL, 2.0F, 1.0F);
             if (level() instanceof net.minecraft.server.level.ServerLevel server) {
-                server.getServer().getPlayerList().broadcastSystemMessage(Component.literal("an intruder?"), false);
+                server.getServer().getPlayerList().broadcastSystemMessage(Component.translatable("message.kinora_reforged.intro.0"), false);
                 server.sendParticles(ParticleTypes.WITCH, getX(), getY(), getZ(), 300, 0.7D, 1.6D, 0.7D, 0.1D);
             }
         } else if (introAge == 60 || introAge == 85 || introAge == 145 || introAge == 182) {
             if (level() instanceof net.minecraft.server.level.ServerLevel server) {
-                String message = introAge == 60 ? "well..." : introAge == 85 ? "are you after the ancestral rune?" : introAge == 145 ? "doesn't matter..." : "i'll kick you out if you don't want to leave";
-                server.getServer().getPlayerList().broadcastSystemMessage(Component.literal(message), false);
+                int line = introAge == 60 ? 1 : introAge == 85 ? 2 : introAge == 145 ? 3 : 4;
+                server.getServer().getPlayerList().broadcastSystemMessage(Component.translatable("message.kinora_reforged.intro." + line), false);
             }
         } else if (introAge == 275) {
             if (level() instanceof net.minecraft.server.level.ServerLevel server) {

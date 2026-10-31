@@ -2,9 +2,6 @@ package com.kinorareforged;
 
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.network.chat.Component;
-import net.minecraft.world.InteractionHand;
-import net.minecraft.world.InteractionResult;
-import net.minecraft.world.SimpleMenuProvider;
 import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.entity.EntityType;
@@ -47,36 +44,28 @@ public final class MantydbosssitingEntity extends KinoraGeoPathfinder {
     }
 
     @Override
-    protected InteractionResult mobInteract(Player player, InteractionHand hand) {
-        if (!level().isClientSide && player instanceof ServerPlayer serverPlayer) {
-            serverPlayer.openMenu(new SimpleMenuProvider((id, inventory, ignored) -> new TalkMenu(id, inventory), Component.literal("Talk1")));
-        }
-        return InteractionResult.sidedSuccess(level().isClientSide);
-    }
-
-    @Override
     public void customServerAiStep() {
         super.customServerAiStep();
         if (!(level() instanceof ServerLevel server)) return;
         if (!getPersistentData().getBoolean("KinoraTalkStarted")) getPersistentData().putBoolean("KinoraTalkStarted", true);
         talkAge++;
-        if (talkAge == 40) say(server, "Why did you bring me back to life?");
-        if (talkAge == 140) say(server, "don't worry, i won't harm you anymore");
-        if (talkAge == 240) say(server, "is it because of the ancestral rune?");
-        if (talkAge == 340) say(server, "...");
-        if (talkAge == 440) say(server, "fine");
+        if (talkAge == 40) say(server, 0);
+        if (talkAge == 140) say(server, 1);
+        if (talkAge == 240) say(server, 2);
+        if (talkAge == 340) say(server, 3);
+        if (talkAge == 440) say(server, 4);
         if (talkAge == 500) {
-            say(server, "I am not giving this to you out of kindness but out of loyalty to my daughter.");
+            say(server, 5);
             ItemEntity item = new ItemEntity(server, getX(), getY(), getZ(), new ItemStack(ModItems.PLANTATION_RUNE.get()));
             item.setPickUpDelay(2);
             server.addFreshEntity(item);
         }
-        if (talkAge == 600) say(server, "now go");
-        if (talkAge == 800) say(server, "More Content in v2.0");
+        if (talkAge == 600) say(server, 6);
+        if (talkAge == 800) say(server, 7);
     }
 
-    private void say(ServerLevel server, String text) {
-        server.getServer().getPlayerList().broadcastSystemMessage(Component.literal(text), false);
+    private void say(ServerLevel server, int line) {
+        server.getServer().getPlayerList().broadcastSystemMessage(Component.translatable("message.kinora_reforged.revived." + line), false);
     }
 
     @Override

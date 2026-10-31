@@ -57,7 +57,7 @@ public final class MantydBloomEntity extends KinoraGeoMonster {
             int ia = getPersistentData().getInt("IA") + 1;
             getPersistentData().putInt("IA", ia);
             if (ia == 20 && level() instanceof ServerLevel server) {
-                server.getServer().getPlayerList().broadcastSystemMessage(Component.literal("A Mantyd Blossom Appeared"), false);
+                server.getServer().getPlayerList().broadcastSystemMessage(Component.translatable("message.kinora_reforged.bloom_appeared"), false);
             }
             if (ia == 100) {
                 if (level() instanceof ServerLevel server) {
