@@ -47,8 +47,9 @@ public final class KinoraScytheClient {
             float fade = entity.fade(partialTick);
             float grow = Mth.clamp((entity.tickCount + partialTick) / 3.0F, 0.4F, 1.0F);
             float yaw = entity.getYRot() * Mth.DEG_TO_RAD;
+            float pitch = entity.getXRot() * Mth.DEG_TO_RAD;
             poseStack.pushPose();
-            poseStack.mulPose(new Quaternionf().rotateY(Mth.PI - yaw).rotateX(-Mth.HALF_PI));
+            poseStack.mulPose(new Quaternionf().rotateY(Mth.PI - yaw).rotateX(-pitch).rotateX(-Mth.HALF_PI));
             quad(poseStack, buffers.getBuffer(RenderType.entityTranslucentEmissive(TRAIL)), 0.0F, -0.9F, 1.5F * grow, 0.35F * fade);
             quad(poseStack, buffers.getBuffer(RenderType.entityTranslucentEmissive(TRAIL)), 0.0F, -0.45F, 1.6F * grow, 0.6F * fade);
             quad(poseStack, buffers.getBuffer(RenderType.entityTranslucentEmissive(MAIN)), 0.0F, 0.0F, 1.7F * grow, fade);

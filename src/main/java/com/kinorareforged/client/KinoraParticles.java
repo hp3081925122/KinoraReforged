@@ -37,6 +37,7 @@ public final class KinoraParticles {
         private final SpriteSet sprites;
         private final Mode mode;
         private final float yaw;
+        private final float pitch;
         private final float tilt;
         private final float size;
 
@@ -45,6 +46,7 @@ public final class KinoraParticles {
             this.sprites = sprites;
             this.mode = mode;
             this.yaw = options.yaw() * Mth.DEG_TO_RAD;
+            this.pitch = options.pitch() * Mth.DEG_TO_RAD;
             this.tilt = options.tilt() * Mth.DEG_TO_RAD;
             this.size = Math.max(0.1F, options.size());
             this.lifetime = Math.max(2, options.life());
@@ -77,7 +79,7 @@ public final class KinoraParticles {
             float t = Mth.clamp((age + partialTick) / lifetime, 0.0F, 1.0F);
             switch (mode) {
                 case SLASH -> {
-                    Quaternionf rotation = new Quaternionf().rotateY(Mth.PI - yaw).rotateZ(tilt).rotateX(-Mth.HALF_PI);
+                    Quaternionf rotation = new Quaternionf().rotateY(Mth.PI - yaw).rotateX(-pitch).rotateZ(tilt).rotateX(-Mth.HALF_PI);
                     float alpha = t < 0.7F ? 1.0F : 1.0F - (t - 0.7F) / 0.3F;
                     quad(buffer, rotation, px, py, pz, size * (0.88F + 0.12F * t), alpha);
                 }

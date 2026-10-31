@@ -8,23 +8,27 @@ import net.neoforged.neoforge.network.PacketDistributor;
 
 public final class KinoraFx {
     public static void slash(ServerLevel level, Vec3 pos, float yaw, float tilt, float size, int life) {
-        send(level, new ModParticles.FxOptions(ModParticles.SLASH.get(), yaw, tilt, size, life), pos);
+        slash(level, pos, yaw, 0.0F, tilt, size, life);
+    }
+
+    public static void slash(ServerLevel level, Vec3 pos, float yaw, float pitch, float tilt, float size, int life) {
+        send(level, new ModParticles.FxOptions(ModParticles.SLASH.get(), yaw, pitch, tilt, size, life), pos);
     }
 
     public static void echoSlash(ServerLevel level, Vec3 pos, float yaw, float tilt, float size, int life) {
-        send(level, new ModParticles.FxOptions(ModParticles.ECHO_SLASH.get(), yaw, tilt, size, life), pos);
+        send(level, new ModParticles.FxOptions(ModParticles.ECHO_SLASH.get(), yaw, 0.0F, tilt, size, life), pos);
     }
 
     public static void ring(ServerLevel level, Vec3 pos, float size, int life) {
-        send(level, new ModParticles.FxOptions(ModParticles.RING.get(), 0.0F, 0.0F, size, life), pos);
+        send(level, new ModParticles.FxOptions(ModParticles.RING.get(), 0.0F, 0.0F, 0.0F, size, life), pos);
     }
 
     public static void echoRing(ServerLevel level, Vec3 pos, float size, int life) {
-        send(level, new ModParticles.FxOptions(ModParticles.ECHO_RING.get(), 0.0F, 0.0F, size, life), pos);
+        send(level, new ModParticles.FxOptions(ModParticles.ECHO_RING.get(), 0.0F, 0.0F, 0.0F, size, life), pos);
     }
 
     public static void warn(ServerLevel level, Vec3 pos, float size, int life) {
-        send(level, new ModParticles.FxOptions(ModParticles.WARN.get(), 0.0F, 0.0F, size, life), pos);
+        send(level, new ModParticles.FxOptions(ModParticles.WARN.get(), 0.0F, 0.0F, 0.0F, size, life), pos);
     }
 
     public static void petals(ServerLevel level, Vec3 pos, int count, double spread, double height, double speed) {
@@ -37,6 +41,13 @@ public final class KinoraFx {
 
     public static void shake(ServerLevel level, Entity source, double radius, float strength, int duration) {
         PacketDistributor.sendToPlayersNear(level, null, source.getX(), source.getY(), source.getZ(), radius, new KinoraNetwork.ShakePayload(strength, duration));
+    }
+
+    public static boolean isFriendly(Entity owner, Entity entity) {
+        if (owner == null || entity == owner || entity.isPassengerOfSameVehicle(owner) || entity.hasPassenger(owner) || owner.hasPassenger(entity) || entity.isAlliedTo(owner)) {
+            return true;
+        }
+        return entity instanceof net.minecraft.world.entity.OwnableEntity ownable && ownable.getOwner() == owner;
     }
 
     public static Vec3 front(Entity entity, double distance, double height) {

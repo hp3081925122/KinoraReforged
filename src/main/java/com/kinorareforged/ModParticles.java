@@ -28,7 +28,7 @@ public final class ModParticles {
         PARTICLES.register(bus);
     }
 
-    public record FxOptions(FxType type, float yaw, float tilt, float size, int life) implements ParticleOptions {
+    public record FxOptions(FxType type, float yaw, float pitch, float tilt, float size, int life) implements ParticleOptions {
         @Override
         public ParticleType<?> getType() {
             return type;
@@ -43,16 +43,18 @@ public final class ModParticles {
             super(true);
             codec = RecordCodecBuilder.mapCodec(instance -> instance.group(
                     Codec.FLOAT.fieldOf("yaw").forGetter(FxOptions::yaw),
+                    Codec.FLOAT.optionalFieldOf("pitch", 0.0F).forGetter(FxOptions::pitch),
                     Codec.FLOAT.fieldOf("tilt").forGetter(FxOptions::tilt),
                     Codec.FLOAT.fieldOf("size").forGetter(FxOptions::size),
                     Codec.INT.fieldOf("life").forGetter(FxOptions::life)
-            ).apply(instance, (yaw, tilt, size, life) -> new FxOptions(this, yaw, tilt, size, life)));
+            ).apply(instance, (yaw, pitch, tilt, size, life) -> new FxOptions(this, yaw, pitch, tilt, size, life)));
             streamCodec = StreamCodec.composite(
                     ByteBufCodecs.FLOAT, FxOptions::yaw,
+                    ByteBufCodecs.FLOAT, FxOptions::pitch,
                     ByteBufCodecs.FLOAT, FxOptions::tilt,
                     ByteBufCodecs.FLOAT, FxOptions::size,
                     ByteBufCodecs.VAR_INT, FxOptions::life,
-                    (yaw, tilt, size, life) -> new FxOptions(this, yaw, tilt, size, life));
+                    (yaw, pitch, tilt, size, life) -> new FxOptions(this, yaw, pitch, tilt, size, life));
         }
 
         @Override

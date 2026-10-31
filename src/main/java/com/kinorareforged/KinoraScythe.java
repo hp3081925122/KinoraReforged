@@ -49,25 +49,27 @@ public final class KinoraScythe {
             return;
         }
         float damage = (float) Math.max(0.0D, KinoraConfig.SCYTHE_COMBO_BASE_DAMAGE.get() + player.getAttributeValue(Attributes.ATTACK_DAMAGE) * KinoraConfig.SCYTHE_COMBO_ATTACK_RATIO.get());
-        Vec3 look = Vec3.directionFromRotation(0.0F, player.getYRot());
-        Vec3 origin = player.position();
+        Vec3 look = player.getLookAngle();
+        Vec3 flat = Vec3.directionFromRotation(0.0F, player.getYRot());
+        Vec3 origin = player.getEyePosition().subtract(0.0D, 0.3D, 0.0D);
         double range = 3.5D;
-        for (LivingEntity target : level.getEntitiesOfClass(LivingEntity.class, new AABB(origin, origin).inflate(range, 2.0D, range), entity -> entity != player && entity.isAlive() && !entity.isAlliedTo(player))) {
-            Vec3 to = target.position().subtract(origin).multiply(1.0D, 0.0D, 1.0D);
+        for (LivingEntity target : level.getEntitiesOfClass(LivingEntity.class, new AABB(origin, origin).inflate(range + 1.0D), entity -> entity.isAlive() && !KinoraFx.isFriendly(player, entity))) {
+            Vec3 to = target.getBoundingBox().getCenter().subtract(origin);
             double distance = to.length();
-            if (distance > range + target.getBbWidth() * 0.5D || distance > 1.2D && to.normalize().dot(look) < 0.2D) {
+            double reach = range + target.getBbWidth() * 0.5D;
+            if (distance > reach || distance > 1.2D && to.normalize().dot(look) < 0.35D) {
                 continue;
             }
             target.invulnerableTime = 0;
             if (target.hurt(level.damageSources().playerAttack(player), damage)) {
-                target.knockback(0.15D, -look.x, -look.z);
+                target.knockback(0.15D, -flat.x, -flat.z);
             }
         }
         player.swing(InteractionHand.MAIN_HAND, true);
         level.playSound(null, player.getX(), player.getY(), player.getZ(), SoundEvents.PLAYER_ATTACK_SWEEP, SoundSource.PLAYERS, 0.9F, 1.4F + hit * 0.06F);
         float side = hit % 2 == 0 ? 1.0F : -1.0F;
-        Vec3 front = player.position().add(look.x * 1.3D, player.getBbHeight() * 0.55D + hit * 0.06D, look.z * 1.3D);
-        KinoraFx.slash(level, front, player.getYRot() + side * (15.0F + level.random.nextFloat() * 25.0F), side * (25.0F + level.random.nextFloat() * 30.0F), 2.8F, 7);
+        Vec3 front = origin.add(look.scale(1.3D)).add(0.0D, hit * 0.05D, 0.0D);
+        KinoraFx.slash(level, front, player.getYRot() + side * (15.0F + level.random.nextFloat() * 25.0F), player.getXRot(), side * (25.0F + level.random.nextFloat() * 30.0F), 2.8F, 7);
         KinoraFx.sparks(level, front.add(look.scale(0.8D)), 2, 0.5D);
         if (hit == HITS - 1) {
             KinoraFx.ring(level, player.position().add(0.0D, 0.08D, 0.0D), 3.5F, 10);

@@ -34,8 +34,9 @@ public final class ScytheWaveEntity extends Projectile {
         wave.setOwner(player);
         wave.damage = (float) Math.max(0.0D, player.getAttributeValue(net.minecraft.world.entity.ai.attributes.Attributes.ATTACK_DAMAGE) * KinoraConfig.SCYTHE_WAVE_DAMAGE_RATIO.get());
         wave.ignoredEntity = ignored == null ? -1 : ignored.getId();
-        Vec3 look = Vec3.directionFromRotation(0.0F, player.getYRot());
-        wave.moveTo(player.getX() + look.x * 0.8D, player.getY() + player.getBbHeight() * 0.55D, player.getZ() + look.z * 0.8D, player.getYRot(), 0.0F);
+        Vec3 look = player.getLookAngle();
+        Vec3 start = player.getEyePosition().subtract(0.0D, 0.35D, 0.0D).add(look.scale(0.8D));
+        wave.moveTo(start.x, start.y, start.z, player.getYRot(), player.getXRot());
         wave.setDeltaMovement(look.scale(1.15D));
         level.addFreshEntity(wave);
         level.playSound(null, player.getX(), player.getY(), player.getZ(), net.minecraft.sounds.SoundEvents.PLAYER_ATTACK_SWEEP, net.minecraft.sounds.SoundSource.PLAYERS, 1.0F, 1.3F);
@@ -97,7 +98,7 @@ public final class ScytheWaveEntity extends Projectile {
 
     @Override
     protected boolean canHitEntity(Entity entity) {
-        return super.canHitEntity(entity) && entity instanceof LivingEntity && entity.isAlive();
+        return entity instanceof LivingEntity && entity.isAlive() && !entity.isSpectator() && !KinoraFx.isFriendly(getOwner(), entity);
     }
 
     @Override
