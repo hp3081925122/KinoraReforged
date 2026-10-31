@@ -21,11 +21,6 @@ public final class ModCreativeTabs {
                 output.accept(ModItems.MANTYD_HELMET.get());
                 output.accept(ModItems.MANTYD_MEDICINE.get());
                 output.accept(ModItems.PLANTATION_RUNE.get());
-                output.accept(ModItems.MANTYD_BOSS_SPAWN_SPAWN_EGG.get());
-                output.accept(ModItems.MANTYDBOSSDEAD_SPAWN_EGG.get());
-                output.accept(ModItems.MANTYDBOSSSITING_SPAWN_EGG.get());
-                output.accept(ModItems.MANTYD_BOSS_ECHO_SPAWN_EGG.get());
-                output.accept(ModItems.MANTYDBOSSSITINGTWO_SPAWN_EGG.get());
             })
             .build());
 
