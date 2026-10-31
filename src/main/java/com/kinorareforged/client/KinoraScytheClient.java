@@ -46,8 +46,10 @@ public final class KinoraScytheClient {
         public void render(ScytheWaveEntity entity, float entityYaw, float partialTick, PoseStack poseStack, MultiBufferSource buffers, int packedLight) {
             float fade = entity.fade(partialTick);
             float grow = Mth.clamp((entity.tickCount + partialTick) / 3.0F, 0.4F, 1.0F);
-            float yaw = entity.getYRot() * Mth.DEG_TO_RAD;
-            float pitch = entity.getXRot() * Mth.DEG_TO_RAD;
+            net.minecraft.world.phys.Vec3 motion = entity.getDeltaMovement();
+            double horizontal = motion.horizontalDistance();
+            float yaw = horizontal > 1.0E-4D ? (float) Mth.atan2(-motion.x, motion.z) : entity.getYRot() * Mth.DEG_TO_RAD;
+            float pitch = (float) Mth.atan2(-motion.y, Math.max(horizontal, 1.0E-4D));
             poseStack.pushPose();
             poseStack.mulPose(new Quaternionf().rotateY(Mth.PI - yaw).rotateX(-pitch).rotateX(-Mth.HALF_PI));
             quad(poseStack, buffers.getBuffer(RenderType.entityTranslucentEmissive(TRAIL)), 0.0F, -0.9F, 1.5F * grow, 0.35F * fade);
