@@ -60,7 +60,6 @@ public final class MantydbosssitingEntity extends KinoraGeoPathfinder {
             server.addFreshEntity(item);
         }
         if (talkAge == 600) say(server, 6);
-        if (talkAge == 800) say(server, 7);
     }
 
     private void say(ServerLevel server, int line) {
