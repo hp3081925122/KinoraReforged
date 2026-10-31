@@ -26,10 +26,16 @@ public final class KinoraPlayerEvents {
         if (!(player.level() instanceof ServerLevel server)) {
             return;
         }
-        MantydbossEchoEntity echo = ModEntities.MANTYD_BOSS_ECHO.get().create(server);
-        if (echo != null && player.isAlive()) {
-            echo.moveTo(BlockPos.containing(player.getX(), player.getY(), player.getZ()), player.getYRot() + 5.0F, player.getXRot());
-            server.addFreshEntity(echo);
+        if (!player.isAlive()) {
+            return;
+        }
+        MantydbossEchoEntity echo = ModEntities.MANTYD_BOSS_ECHO.get().spawn(server, BlockPos.containing(player.getX(), player.getY(), player.getZ()), net.minecraft.world.entity.MobSpawnType.MOB_SUMMONED);
+        if (echo != null) {
+            float yaw = player.getYRot() + 5.0F;
+            echo.setYRot(yaw);
+            echo.setYBodyRot(yaw);
+            echo.setYHeadRot(yaw);
+            echo.setDeltaMovement(0.0D, 0.0D, 0.0D);
         }
     }
 

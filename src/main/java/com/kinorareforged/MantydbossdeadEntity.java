@@ -1,5 +1,8 @@
 package com.kinorareforged;
 
+import software.bernie.geckolib.animation.AnimationState;
+import software.bernie.geckolib.animation.RawAnimation;
+
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.InteractionHand;
@@ -81,10 +84,6 @@ public final class MantydbossdeadEntity extends KinoraGeoPathfinder {
         revivalTicks = Math.max(0, Math.min(130, tag.getInt("KinoraRevivalTicks")));
     }
 
-    @Override
-    protected String movementAnimation() {
-        return "deathloop";
-    }
 
     @Override
     public boolean isPushable() {
@@ -97,5 +96,20 @@ public final class MantydbossdeadEntity extends KinoraGeoPathfinder {
 
     @Override
     protected void pushEntities() {
+    }
+
+    @Override
+    protected String defaultTexture() {
+        return "mantydbosstexture";
+    }
+
+    @Override
+    protected RawAnimation loopAnimation(AnimationState<?> state) {
+        return RawAnimation.begin().thenLoop("deathloop");
+    }
+
+    @Override
+    protected int animationTransitionTicks() {
+        return 0;
     }
 }

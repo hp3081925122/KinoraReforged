@@ -1,13 +1,13 @@
 package com.kinorareforged;
 
-import software.bernie.geckolib.animatable.GeoEntity;
 import software.bernie.geckolib.animatable.instance.AnimatableInstanceCache;
 import software.bernie.geckolib.animation.AnimatableManager;
 import software.bernie.geckolib.animation.AnimationController;
 import software.bernie.geckolib.animation.AnimationState;
+import software.bernie.geckolib.animation.PlayState;
 import software.bernie.geckolib.animation.RawAnimation;
-import software.bernie.geckolib.constant.DataTickets;
 import software.bernie.geckolib.util.GeckoLibUtil;
+import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.syncher.EntityDataAccessor;
 import net.minecraft.network.syncher.EntityDataSerializers;
 import net.minecraft.network.syncher.SynchedEntityData;
@@ -20,8 +20,9 @@ import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.damagesource.DamageTypes;
 import net.minecraft.world.level.Level;
 
-public abstract class KinoraGeoPathfinder extends PathfinderMob implements GeoEntity {
+public abstract class KinoraGeoPathfinder extends PathfinderMob implements KinoraGeoEntity {
     protected static final EntityDataAccessor<String> ANIMATION = SynchedEntityData.defineId(KinoraGeoPathfinder.class, EntityDataSerializers.STRING);
+    protected static final EntityDataAccessor<String> TEXTURE = SynchedEntityData.defineId(KinoraGeoPathfinder.class, EntityDataSerializers.STRING);
     private final AnimatableInstanceCache cache = GeckoLibUtil.createInstanceCache(this);
     protected String animationProcedure = "empty";
 
@@ -41,6 +42,24 @@ public abstract class KinoraGeoPathfinder extends PathfinderMob implements GeoEn
     protected void defineSynchedData(SynchedEntityData.Builder builder) {
         super.defineSynchedData(builder);
         builder.define(ANIMATION, "undefined");
+        builder.define(TEXTURE, defaultTexture());
+    }
+
+    protected abstract String defaultTexture();
+
+    protected abstract RawAnimation loopAnimation(AnimationState<?> state);
+
+    protected int animationTransitionTicks() {
+        return 2;
+    }
+
+    @Override
+    public String getTexture() {
+        return entityData.get(TEXTURE);
+    }
+
+    public void setTexture(String texture) {
+        entityData.set(TEXTURE, texture);
     }
 
     public String getSyncedAnimation() {
@@ -49,40 +68,56 @@ public abstract class KinoraGeoPathfinder extends PathfinderMob implements GeoEn
 
     public void setAnimation(String animation) {
         entityData.set(ANIMATION, animation);
-        animationProcedure = animation.equals("undefined") ? "empty" : animation;
     }
 
-    protected String movementAnimation() {
-        return "walk";
-    }
-
-    protected String idleAnimation() {
-        return "idle";
-    }
-
-    private software.bernie.geckolib.animation.PlayState movementPredicate(AnimationState<KinoraGeoPathfinder> state) {
-        if (!animationProcedure.equals("empty")) {
-            return software.bernie.geckolib.animation.PlayState.STOP;
+    @Override
+    public void tick() {
+        String synced = getSyncedAnimation();
+        if (!synced.equals("undefined")) {
+            entityData.set(ANIMATION, "undefined");
+            animationProcedure = synced;
         }
-        if (isDeadOrDying()) {
-            return state.setAndContinue(RawAnimation.begin().thenPlay("death"));
-        }
-        return state.setAndContinue(RawAnimation.begin().thenLoop(state.isMoving() ? movementAnimation() : idleAnimation()));
+        super.tick();
     }
 
-    private software.bernie.geckolib.animation.PlayState procedurePredicate(AnimationState<KinoraGeoPathfinder> state) {
+    @Override
+    public void addAdditionalSaveData(CompoundTag tag) {
+        super.addAdditionalSaveData(tag);
+        tag.putString("Texture", getTexture());
+    }
+
+    @Override
+    public void readAdditionalSaveData(CompoundTag tag) {
+        super.readAdditionalSaveData(tag);
+        if (tag.contains("Texture")) {
+            setTexture(tag.getString("Texture"));
+        }
+    }
+
+    private PlayState movementPredicate(AnimationState<KinoraGeoPathfinder> state) {
+        if (animationProcedure.equals("empty")) {
+            return state.setAndContinue(loopAnimation(state));
+        }
+        return PlayState.STOP;
+    }
+
+    private PlayState procedurePredicate(AnimationState<KinoraGeoPathfinder> state) {
         if (!animationProcedure.equals("empty") && state.getController().getAnimationState() == AnimationController.State.STOPPED) {
             state.getController().setAnimation(RawAnimation.begin().thenPlay(animationProcedure));
-            animationProcedure = "empty";
-            state.getController().forceAnimationReset();
+            if (state.getController().getAnimationState() == AnimationController.State.STOPPED) {
+                animationProcedure = "empty";
+                state.getController().forceAnimationReset();
+            }
+        } else if (animationProcedure.equals("empty")) {
+            return PlayState.STOP;
         }
-        return animationProcedure.equals("empty") ? software.bernie.geckolib.animation.PlayState.STOP : software.bernie.geckolib.animation.PlayState.CONTINUE;
+        return PlayState.CONTINUE;
     }
 
     @Override
     public void registerControllers(AnimatableManager.ControllerRegistrar controllers) {
-        controllers.add(new AnimationController<>(this, "movement", 2, this::movementPredicate));
-        controllers.add(new AnimationController<>(this, "procedure", 2, this::procedurePredicate));
+        controllers.add(new AnimationController<>(this, "movement", animationTransitionTicks(), this::movementPredicate));
+        controllers.add(new AnimationController<>(this, "procedure", animationTransitionTicks(), this::procedurePredicate));
     }
 
     @Override

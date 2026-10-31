@@ -85,6 +85,9 @@ public final class ModItems {
         @Override
         public InteractionResultHolder<ItemStack> use(Level level, Player player, InteractionHand hand) {
             ItemStack stack = player.getItemInHand(hand);
+            if (level.isClientSide) {
+                com.kinorareforged.client.KinoraClientEffects.displayItemActivation(new ItemStack(this));
+            }
             if (!level.isClientSide && stack.is(this)) {
                 stack.shrink(1);
                 ServerLevel server = (ServerLevel) level;
@@ -159,7 +162,7 @@ public final class ModItems {
 
     public static final class MantydScytheItem extends SwordItem {
         private MantydScytheItem() {
-            super(new MantydScytheTier(), new Item.Properties().stacksTo(1).fireResistant().attributes(SwordItem.createAttributes(new MantydScytheTier(), 3, -2.6F)));
+            super(new MantydScytheTier(), new Item.Properties().stacksTo(1).fireResistant().component(net.minecraft.core.component.DataComponents.UNBREAKABLE, new net.minecraft.world.item.component.Unbreakable(false)).attributes(SwordItem.createAttributes(new MantydScytheTier(), 3, -2.6F)));
         }
     }
 

@@ -1,5 +1,8 @@
 package com.kinorareforged;
 
+import software.bernie.geckolib.animation.AnimationState;
+import software.bernie.geckolib.animation.RawAnimation;
+
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.sounds.SoundEvents;
@@ -94,5 +97,15 @@ public final class MantydbossEchoEntity extends KinoraGeoPathfinder {
 
     @Override
     protected void pushEntities() {
+    }
+
+    @Override
+    protected String defaultTexture() {
+        return "mantydbosstextureecho";
+    }
+
+    @Override
+    protected RawAnimation loopAnimation(AnimationState<?> state) {
+        return RawAnimation.begin().thenLoop("idle");
     }
 }

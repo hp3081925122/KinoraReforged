@@ -1,5 +1,8 @@
 package com.kinorareforged;
 
+import software.bernie.geckolib.animation.AnimationState;
+import software.bernie.geckolib.animation.RawAnimation;
+
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.nbt.CompoundTag;
@@ -61,7 +64,7 @@ public final class MantydBossSpawnEntity extends KinoraGeoPathfinder {
         introAge++;
         if (introAge == 20) {
             setAnimation("spawning");
-            for (net.minecraft.world.entity.LivingEntity target : level().getEntitiesOfClass(net.minecraft.world.entity.LivingEntity.class, getBoundingBox().inflate(64.0D))) {
+            for (net.minecraft.world.entity.LivingEntity target : level().getEntitiesOfClass(net.minecraft.world.entity.LivingEntity.class, getBoundingBox().inflate(64.0D), entity -> !(entity instanceof Player))) {
                 target.addEffect(new MobEffectInstance(MobEffects.MOVEMENT_SLOWDOWN, 255, 5, false, false));
             }
             level().playSound(null, blockPosition(), ModSounds.KINORA_INTRO_BETTER.get(), SoundSource.NEUTRAL, 2.0F, 1.0F);
@@ -100,5 +103,25 @@ public final class MantydBossSpawnEntity extends KinoraGeoPathfinder {
     public void readAdditionalSaveData(CompoundTag tag) {
         super.readAdditionalSaveData(tag);
         introAge = Math.max(0, Math.min(500, tag.getInt("KinoraIntroAge")));
+    }
+
+    @Override
+    public boolean canBeCollidedWith() {
+        return true;
+    }
+
+    @Override
+    public boolean canCollideWith(net.minecraft.world.entity.Entity entity) {
+        return true;
+    }
+
+    @Override
+    protected String defaultTexture() {
+        return "mantydbosstexture";
+    }
+
+    @Override
+    protected RawAnimation loopAnimation(AnimationState<?> state) {
+        return RawAnimation.begin().thenLoop("idlespawn");
     }
 }

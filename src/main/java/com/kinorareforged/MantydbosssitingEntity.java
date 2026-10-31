@@ -1,5 +1,8 @@
 package com.kinorareforged;
 
+import software.bernie.geckolib.animation.AnimationState;
+import software.bernie.geckolib.animation.RawAnimation;
+
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.entity.item.ItemEntity;
@@ -38,10 +41,6 @@ public final class MantydbosssitingEntity extends KinoraGeoPathfinder {
         goalSelector.addGoal(3, new RandomLookAroundGoal(this));
     }
 
-    @Override
-    protected String movementAnimation() {
-        return "sit";
-    }
 
     @Override
     public void customServerAiStep() {
@@ -91,5 +90,15 @@ public final class MantydbosssitingEntity extends KinoraGeoPathfinder {
 
     @Override
     protected void pushEntities() {
+    }
+
+    @Override
+    protected String defaultTexture() {
+        return "mantydbosstexture";
+    }
+
+    @Override
+    protected RawAnimation loopAnimation(AnimationState<?> state) {
+        return RawAnimation.begin().thenLoop("sit");
     }
 }

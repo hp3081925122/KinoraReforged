@@ -1,5 +1,8 @@
 package com.kinorareforged;
 
+import software.bernie.geckolib.animation.AnimationState;
+import software.bernie.geckolib.animation.RawAnimation;
+
 import java.util.EnumSet;
 import java.util.Locale;
 import net.minecraft.core.BlockPos;
@@ -390,5 +393,21 @@ public final class BossMantydEntity extends KinoraGeoMonster {
     public void setCustomName(Component name) {
         super.setCustomName(name);
         bossInfo.setName(getDisplayName());
+    }
+
+    @Override
+    protected String defaultTexture() {
+        return "mantydbosstexture";
+    }
+
+    @Override
+    protected RawAnimation loopAnimation(AnimationState<?> state) {
+        if (state.isMoving() || !(state.getLimbSwingAmount() > -0.15F && state.getLimbSwingAmount() < 0.15F)) {
+            return RawAnimation.begin().thenLoop("walk");
+        }
+        if (isDeadOrDying()) {
+            return RawAnimation.begin().thenPlay("death");
+        }
+        return RawAnimation.begin().thenLoop("idle");
     }
 }

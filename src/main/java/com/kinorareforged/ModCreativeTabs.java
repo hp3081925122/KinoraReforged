@@ -11,6 +11,7 @@ public final class ModCreativeTabs {
     public static final DeferredHolder<CreativeModeTab, CreativeModeTab> KINORA = TABS.register("mokels_boss_kinora", () -> CreativeModeTab.builder()
             .title(Component.translatable("item_group.kinora_reforged.mokels_boss_kinora"))
             .icon(() -> ModItems.ANCESTRAL_BAG.get().getDefaultInstance())
+            .withSearchBar()
             .displayItems((parameters, output) -> {
                 output.accept(ModItems.BOSS_MANTYD_SPAWN_EGG.get());
                 output.accept(ModItems.MANTYD_BLOOM_SPAWN_EGG.get());

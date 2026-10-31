@@ -1,6 +1,7 @@
 package com.kinorareforged.client;
 
 import com.kinorareforged.BossMantydEntity;
+import com.kinorareforged.KinoraGeoEntity;
 import com.kinorareforged.KinoraGeoMonster;
 import com.kinorareforged.KinoraGeoPathfinder;
 import com.kinorareforged.MantydBloomEntity;
@@ -28,27 +29,27 @@ import com.mojang.blaze3d.vertex.VertexConsumer;
 
 public final class KinoraRenderers {
     public static void register(EntityRenderersEvent.RegisterRenderers event) {
-        event.registerEntityRenderer(ModEntities.BOSS_MANTYD.get(), context -> new Renderer<>(context, new Model<>("mantydboss", entity -> "mantydbosstexture"), 1.2F));
+        event.registerEntityRenderer(ModEntities.BOSS_MANTYD.get(), context -> new Renderer<>(context, new Model<>("mantydboss", true), 1.2F, null, false));
         event.registerEntityRenderer(ModEntities.PETAL_PROJECTILE.get(), PetalArrowRenderer::new);
-        event.registerEntityRenderer(ModEntities.MANTYD_BLOOM.get(), context -> new Renderer<>(context, new Model<>("flowerentity", entity -> "flowerentitytexture"), 1.2F, id("textures/entities/flowerentitytextureglow.png")));
-        event.registerEntityRenderer(ModEntities.MANTYD_BOSS_SPAWN.get(), context -> new Renderer<>(context, new Model<>("mantydboss", entity -> "mantydbosstexture"), 1.2F));
-        event.registerEntityRenderer(ModEntities.MANTYDBOSSDEAD.get(), context -> new Renderer<>(context, new Model<>("mantydboss", entity -> "mantydbosstexture"), 0.0F));
-        event.registerEntityRenderer(ModEntities.MANTYDBOSSSITING.get(), context -> new Renderer<>(context, new Model<>("mantydboss", entity -> "mantydbosstexture"), 0.0F));
-        event.registerEntityRenderer(ModEntities.MANTYD_BOSS_ECHO.get(), context -> new Renderer<>(context, new Model<>("mantydboss", entity -> "mantydbosstextureecho"), 1.2F, id("textures/entities/mantydbosstextureecho.png")));
-        event.registerEntityRenderer(ModEntities.MANTYDBOSSSITINGTWO.get(), context -> new Renderer<>(context, new Model<>("mantydboss", entity -> "mantydbosstexture"), 0.0F));
+        event.registerEntityRenderer(ModEntities.MANTYD_BLOOM.get(), context -> new Renderer<>(context, new Model<>("flowerentity", false), 1.2F, id("textures/entities/flowerentitytextureglow.png"), true));
+        event.registerEntityRenderer(ModEntities.MANTYD_BOSS_SPAWN.get(), context -> new Renderer<>(context, new Model<>("mantydboss", true), 1.2F, null, true));
+        event.registerEntityRenderer(ModEntities.MANTYDBOSSDEAD.get(), context -> new Renderer<>(context, new Model<>("mantydboss", false), 0.0F, null, false));
+        event.registerEntityRenderer(ModEntities.MANTYDBOSSSITING.get(), context -> new Renderer<>(context, new Model<>("mantydboss", true), 0.0F, null, true));
+        event.registerEntityRenderer(ModEntities.MANTYD_BOSS_ECHO.get(), context -> new Renderer<>(context, new Model<>("mantydboss", true), 1.2F, id("textures/entities/mantydbosstextureecho.png"), true));
+        event.registerEntityRenderer(ModEntities.MANTYDBOSSSITINGTWO.get(), context -> new Renderer<>(context, new Model<>("mantydboss", true), 0.0F, null, true));
     }
 
     private static ResourceLocation id(String path) {
         return ResourceLocation.fromNamespaceAndPath("kinora_reforged", path);
     }
 
-    private static final class Model<T extends net.minecraft.world.entity.Mob & software.bernie.geckolib.animatable.GeoEntity> extends GeoModel<T> {
+    private static final class Model<T extends net.minecraft.world.entity.Mob & KinoraGeoEntity> extends GeoModel<T> {
         private final String model;
-        private final java.util.function.Function<T, String> texture;
+        private final boolean headTracking;
 
-        private Model(String model, java.util.function.Function<T, String> texture) {
+        private Model(String model, boolean headTracking) {
             this.model = model;
-            this.texture = texture;
+            this.headTracking = headTracking;
         }
 
         @Override
@@ -58,7 +59,7 @@ public final class KinoraRenderers {
 
         @Override
         public ResourceLocation getTextureResource(T entity) {
-            return id("textures/entities/" + texture.apply(entity) + ".png");
+            return id("textures/entities/" + entity.getTexture() + ".png");
         }
 
         @Override
@@ -69,6 +70,9 @@ public final class KinoraRenderers {
         @Override
         public void setCustomAnimations(T entity, long instanceId, AnimationState<T> state) {
             super.setCustomAnimations(entity, instanceId, state);
+            if (!headTracking) {
+                return;
+            }
             var head = getAnimationProcessor().getBone("head");
             var data = state.getData(software.bernie.geckolib.constant.DataTickets.ENTITY_MODEL_DATA);
             if (head != null && data != null) {
@@ -78,24 +82,28 @@ public final class KinoraRenderers {
         }
     }
 
-    private static final class Renderer<T extends net.minecraft.world.entity.Mob & software.bernie.geckolib.animatable.GeoEntity> extends GeoEntityRenderer<T> {
-        private Renderer(EntityRendererProvider.Context context, GeoModel<T> model, float shadow) {
-            this(context, model, shadow, null);
-        }
+    private static final class Renderer<T extends net.minecraft.world.entity.Mob & KinoraGeoEntity> extends GeoEntityRenderer<T> {
+        private final boolean deathRotation;
 
-        private Renderer(EntityRendererProvider.Context context, GeoModel<T> model, float shadow, ResourceLocation glow) {
+        private Renderer(EntityRendererProvider.Context context, GeoModel<T> model, float shadow, ResourceLocation glow, boolean deathRotation) {
             super(context, model);
             shadowRadius = shadow;
+            this.deathRotation = deathRotation;
             if (glow != null) addRenderLayer(new GlowLayer<>(this, glow));
         }
 
         @Override
         public RenderType getRenderType(T entity, ResourceLocation texture, MultiBufferSource buffers, float partialTick) {
-            return RenderType.entityCutoutNoCull(texture);
+            return RenderType.entityTranslucent(getTextureLocation(entity));
+        }
+
+        @Override
+        protected float getDeathMaxRotation(T entity) {
+            return deathRotation ? super.getDeathMaxRotation(entity) : 0.0F;
         }
     }
 
-    private static final class GlowLayer<T extends net.minecraft.world.entity.Mob & software.bernie.geckolib.animatable.GeoEntity> extends GeoRenderLayer<T> {
+    private static final class GlowLayer<T extends net.minecraft.world.entity.Mob & KinoraGeoEntity> extends GeoRenderLayer<T> {
         private final ResourceLocation texture;
 
         private GlowLayer(GeoRenderer<T> renderer, ResourceLocation texture) {
@@ -106,7 +114,7 @@ public final class KinoraRenderers {
         @Override
         public void render(PoseStack pose, T entity, BakedGeoModel model, RenderType type, MultiBufferSource buffers, VertexConsumer vertices, float partial, int light, int overlay) {
             RenderType glow = RenderType.eyes(texture);
-            getRenderer().reRender(model, pose, buffers, entity, glow, buffers.getBuffer(glow), partial, 0xF000F0, OverlayTexture.NO_OVERLAY, -1);
+            getRenderer().reRender(model, pose, buffers, entity, glow, buffers.getBuffer(glow), partial, light, OverlayTexture.NO_OVERLAY, -1);
         }
     }
 

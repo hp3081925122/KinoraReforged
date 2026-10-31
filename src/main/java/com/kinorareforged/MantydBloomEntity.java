@@ -1,5 +1,8 @@
 package com.kinorareforged;
 
+import software.bernie.geckolib.animation.AnimationState;
+import software.bernie.geckolib.animation.RawAnimation;
+
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerLevel;
@@ -44,10 +47,6 @@ public final class MantydBloomEntity extends KinoraGeoMonster {
         goalSelector.addGoal(2, new RandomLookAroundGoal(this));
     }
 
-    @Override
-    protected String movementAnimation() {
-        return "idle";
-    }
 
     @Override
     public void customServerAiStep() {
@@ -77,5 +76,30 @@ public final class MantydBloomEntity extends KinoraGeoMonster {
                 getPersistentData().putInt("IA", 0);
             }
         }
+    }
+
+    @Override
+    public boolean canBeCollidedWith() {
+        return true;
+    }
+
+    @Override
+    public boolean canCollideWith(net.minecraft.world.entity.Entity entity) {
+        return true;
+    }
+
+    @Override
+    protected String defaultTexture() {
+        return "flowerentitytexture";
+    }
+
+    @Override
+    protected RawAnimation loopAnimation(AnimationState<?> state) {
+        return RawAnimation.begin().thenLoop("idle");
+    }
+
+    @Override
+    protected int animationTransitionTicks() {
+        return 4;
     }
 }
