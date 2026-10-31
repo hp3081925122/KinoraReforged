@@ -24,6 +24,8 @@ public final class KinoraReforged {
         net.neoforged.neoforge.common.NeoForge.EVENT_BUS.addListener(KinoraCombatEvents::onLivingDeath);
         net.neoforged.neoforge.common.NeoForge.EVENT_BUS.addListener(KinoraTrades::registerWanderingTrades);
         net.neoforged.neoforge.common.NeoForge.EVENT_BUS.addListener(KinoraTrades::onEntityInteract);
+        net.neoforged.neoforge.common.NeoForge.EVENT_BUS.addListener(KinoraScythe::playerTick);
+        net.neoforged.neoforge.common.NeoForge.EVENT_BUS.addListener(KinoraScythe::onAttackEntity);
         if (net.neoforged.fml.loading.FMLEnvironment.dist == net.neoforged.api.distmarker.Dist.CLIENT) {
             modBus.addListener(com.kinorareforged.client.KinoraRenderers::register);
             modBus.addListener(com.kinorareforged.client.KinoraReforgedClient::registerScreens);
@@ -32,6 +34,7 @@ public final class KinoraReforged {
             modBus.addListener(com.kinorareforged.client.KinoraParticles::register);
             net.neoforged.neoforge.common.NeoForge.EVENT_BUS.addListener(com.kinorareforged.client.KinoraCameraShake::clientTick);
             net.neoforged.neoforge.common.NeoForge.EVENT_BUS.addListener(com.kinorareforged.client.KinoraCameraShake::computeAngles);
+            net.neoforged.neoforge.common.NeoForge.EVENT_BUS.addListener(com.kinorareforged.client.KinoraScytheClient::onAttackKey);
         }
     }
 

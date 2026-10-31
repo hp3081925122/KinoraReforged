@@ -18,6 +18,8 @@
   "item_group.kinora_reforged.mokels_boss_kinora": "基诺拉：重生",
   "item.kinora_reforged.plantation_rune": "古老的护身符",
   "item.kinora_reforged.mantyd_scythe": "棠郎古镰",
+  "item.kinora_reforged.mantyd_scythe.wave": "左键满蓄力：挥出一道横扫剑气",
+  "item.kinora_reforged.mantyd_scythe.combo": "右键：六段连斩（冷却 %s 秒）",
   "item.kinora_reforged.mantyd_boss_spawn_spawn_egg": "萨菲拉的忠诚之刃，基诺拉生成蛋",
   "subtitles.mantydtalk1": "",
   "entity.kinora_reforged.mantydbosssitingtwo": "友善的基诺拉",

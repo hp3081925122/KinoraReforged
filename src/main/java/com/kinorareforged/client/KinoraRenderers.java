@@ -31,6 +31,7 @@ public final class KinoraRenderers {
     public static void register(EntityRenderersEvent.RegisterRenderers event) {
         event.registerEntityRenderer(ModEntities.BOSS_MANTYD.get(), context -> new Renderer<>(context, new Model<>("mantydboss", true), 1.2F, null, false));
         event.registerEntityRenderer(ModEntities.PETAL_PROJECTILE.get(), PetalArrowRenderer::new);
+        event.registerEntityRenderer(ModEntities.SCYTHE_WAVE.get(), KinoraScytheClient.WaveRenderer::new);
         event.registerEntityRenderer(ModEntities.MANTYD_BLOOM.get(), context -> new Renderer<>(context, new Model<>("flowerentity", false), 1.2F, id("textures/entities/flowerentitytextureglow.png"), true));
         event.registerEntityRenderer(ModEntities.MANTYD_BOSS_SPAWN.get(), context -> new Renderer<>(context, new Model<>("mantydboss", true), 1.2F, null, true));
         event.registerEntityRenderer(ModEntities.MANTYDBOSSDEAD.get(), context -> new Renderer<>(context, new Model<>("mantydboss", false), 0.0F, null, false));

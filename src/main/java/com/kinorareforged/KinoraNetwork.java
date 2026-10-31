@@ -8,7 +8,13 @@ import net.neoforged.neoforge.network.event.RegisterPayloadHandlersEvent;
 
 public final class KinoraNetwork {
     public static void register(RegisterPayloadHandlersEvent event) {
-        event.registrar("1").optional().playToClient(ShakePayload.TYPE, ShakePayload.STREAM_CODEC, (payload, context) -> context.enqueueWork(() -> com.kinorareforged.client.KinoraCameraShake.start(payload.strength(), payload.duration())));
+        event.registrar("1").optional()
+                .playToClient(ShakePayload.TYPE, ShakePayload.STREAM_CODEC, (payload, context) -> context.enqueueWork(() -> com.kinorareforged.client.KinoraCameraShake.start(payload.strength(), payload.duration())))
+                .playToServer(WavePayload.TYPE, WavePayload.STREAM_CODEC, (payload, context) -> context.enqueueWork(() -> {
+                    if (context.player() instanceof net.minecraft.server.level.ServerPlayer player) {
+                        KinoraScythe.onWaveRequest(player);
+                    }
+                }));
     }
 
     public record ShakePayload(float strength, int duration) implements CustomPacketPayload {
@@ -17,6 +23,17 @@ public final class KinoraNetwork {
                 ByteBufCodecs.FLOAT, ShakePayload::strength,
                 ByteBufCodecs.VAR_INT, ShakePayload::duration,
                 ShakePayload::new);
+
+        @Override
+        public Type<? extends CustomPacketPayload> type() {
+            return TYPE;
+        }
+    }
+
+    public record WavePayload() implements CustomPacketPayload {
+        public static final WavePayload INSTANCE = new WavePayload();
+        public static final Type<WavePayload> TYPE = new Type<>(KinoraReforged.id("scythe_wave"));
+        public static final StreamCodec<RegistryFriendlyByteBuf, WavePayload> STREAM_CODEC = StreamCodec.unit(INSTANCE);
 
         @Override
         public Type<? extends CustomPacketPayload> type() {

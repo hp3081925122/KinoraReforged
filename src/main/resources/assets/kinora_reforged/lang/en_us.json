@@ -17,6 +17,8 @@
   "item_group.kinora_reforged.mokels_boss_kinora": "Mokels Bossfight: Kinora",
   "item.kinora_reforged.plantation_rune": "Ancestral Rune",
   "item.kinora_reforged.mantyd_scythe": "Ancestral Scythe",
+  "item.kinora_reforged.mantyd_scythe.wave": "Full-charge attack: release a sweeping blade wave",
+  "item.kinora_reforged.mantyd_scythe.combo": "Right-click: six-hit flurry (%s s cooldown)",
   "item.kinora_reforged.mantyd_boss_spawn_spawn_egg": "Saphyra's loyal blade, Kinora Spawn Egg",
   "subtitles.mantydtalk1": "",
   "entity.kinora_reforged.mantydbosssitingtwo": "Kinora",

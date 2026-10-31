@@ -164,6 +164,25 @@ public final class ModItems {
         private MantydScytheItem() {
             super(new MantydScytheTier(), new Item.Properties().stacksTo(1).fireResistant().component(net.minecraft.core.component.DataComponents.UNBREAKABLE, new net.minecraft.world.item.component.Unbreakable(false)).attributes(SwordItem.createAttributes(new MantydScytheTier(), 3, -2.6F)));
         }
+
+        @Override
+        public InteractionResultHolder<ItemStack> use(Level level, Player player, InteractionHand hand) {
+            ItemStack stack = player.getItemInHand(hand);
+            if (hand != InteractionHand.MAIN_HAND || player.getCooldowns().isOnCooldown(this)) {
+                return InteractionResultHolder.pass(stack);
+            }
+            if (!level.isClientSide) {
+                KinoraScythe.startCombo(player);
+            }
+            return InteractionResultHolder.sidedSuccess(stack, level.isClientSide());
+        }
+
+        @Override
+        public void appendHoverText(ItemStack stack, TooltipContext context, List<Component> lines, TooltipFlag flag) {
+            super.appendHoverText(stack, context, lines, flag);
+            lines.add(Component.translatable("item.kinora_reforged.mantyd_scythe.wave").withStyle(net.minecraft.ChatFormatting.LIGHT_PURPLE));
+            lines.add(Component.translatable("item.kinora_reforged.mantyd_scythe.combo", KinoraConfig.SCYTHE_COMBO_COOLDOWN.get() / 20.0D).withStyle(net.minecraft.ChatFormatting.LIGHT_PURPLE));
+        }
     }
 
     public static final class MantydHelmetItem extends ArmorItem {
