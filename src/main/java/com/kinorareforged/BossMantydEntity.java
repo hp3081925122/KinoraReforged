@@ -444,9 +444,9 @@ public final class BossMantydEntity extends KinoraGeoMonster {
     @Override
     public void readAdditionalSaveData(CompoundTag tag) {
         super.readAdditionalSaveData(tag);
-        attackAge = tag.getInt("KinoraAttackAge");
+        attackAge = tag.contains("KinoraAttackAge") ? tag.getInt("KinoraAttackAge") : -1;
         attackType = tag.getString("KinoraAttackType").toLowerCase(Locale.ROOT);
-        bloomTimer = tag.getInt("KinoraBloomTimer");
+        bloomTimer = tag.contains("KinoraBloomTimer") ? tag.getInt("KinoraBloomTimer") : -1;
         bloomPos = tag.contains("KinoraBloomPos") ? BlockPos.of(tag.getLong("KinoraBloomPos")) : blockPosition();
         deathReplacementSpawned = tag.getBoolean("KinoraDeathReplacementSpawned");
         if (attackAge < -1) attackAge = -1;

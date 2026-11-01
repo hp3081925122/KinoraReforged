@@ -76,9 +76,8 @@ tasks.withType(ProcessResources).configureEach {
 }
 
 tasks.named('jar') {
-    from(rootProject.file('LICENSE')) {
-        rename { "${it}_${project.mod_id}" }
-    }
+    from(rootProject.file('LICENSE'))
+    from(rootProject.file('ORIGINAL_LICENSE.md'))
 }
 
 tasks.withType(JavaCompile).configureEach {
