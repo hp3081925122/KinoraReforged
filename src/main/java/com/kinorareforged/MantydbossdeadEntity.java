@@ -1,7 +1,7 @@
 package com.kinorareforged;
 
-import software.bernie.geckolib.animation.AnimationState;
-import software.bernie.geckolib.animation.RawAnimation;
+import com.geckolib.animation.state.AnimationTest;
+import com.geckolib.animation.RawAnimation;
 
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.nbt.CompoundTag;
@@ -42,7 +42,7 @@ public final class MantydbossdeadEntity extends KinoraGeoPathfinder {
         if (!stack.is(ModItems.MANTYD_MEDICINE.get()) || revivalTicks > 0) {
             return super.mobInteract(player, hand);
         }
-        if (!level().isClientSide) {
+        if (!level().isClientSide()) {
             stack.shrink(1);
             revivalTicks = 130;
             setAnimation("standingafterdeath");
@@ -50,18 +50,18 @@ public final class MantydbossdeadEntity extends KinoraGeoPathfinder {
                 server.sendParticles(ParticleTypes.HAPPY_VILLAGER, getX(), getY(), getZ(), 300, 1.0D, 0.6D, 1.0D, 0.1D);
             }
         }
-        return InteractionResult.sidedSuccess(level().isClientSide);
+        return InteractionResult.SUCCESS;
     }
 
     @Override
-    public void customServerAiStep() {
-        super.customServerAiStep();
+    protected void customServerAiStep(net.minecraft.server.level.ServerLevel serverLevel) {
+        super.customServerAiStep(serverLevel);
         if (revivalTicks <= 0) {
             return;
         }
         if (--revivalTicks == 0 && level() instanceof net.minecraft.server.level.ServerLevel server) {
             server.sendParticles(ParticleTypes.POOF, getX(), getY(), getZ(), 600, 1.0D, 0.6D, 1.0D, 0.1D);
-            MantydbosssitingEntity restored = ModEntities.MANTYDBOSSSITING.get().spawn(server, blockPosition(), net.minecraft.world.entity.MobSpawnType.MOB_SUMMONED);
+            MantydbosssitingEntity restored = ModEntities.MANTYDBOSSSITING.get().spawn(server, blockPosition(), net.minecraft.world.entity.EntitySpawnReason.MOB_SUMMONED);
             if (restored != null) {
                 restored.setYRot(getYRot());
                 restored.setYHeadRot(getYRot());
@@ -73,15 +73,15 @@ public final class MantydbossdeadEntity extends KinoraGeoPathfinder {
     }
 
     @Override
-    public void addAdditionalSaveData(CompoundTag tag) {
+    protected void addAdditionalSaveData(net.minecraft.world.level.storage.ValueOutput tag) {
         super.addAdditionalSaveData(tag);
         tag.putInt("KinoraRevivalTicks", revivalTicks);
     }
 
     @Override
-    public void readAdditionalSaveData(CompoundTag tag) {
+    protected void readAdditionalSaveData(net.minecraft.world.level.storage.ValueInput tag) {
         super.readAdditionalSaveData(tag);
-        revivalTicks = Math.max(0, Math.min(130, tag.getInt("KinoraRevivalTicks")));
+        revivalTicks = Math.max(0, Math.min(130, tag.getIntOr("KinoraRevivalTicks", 0)));
     }
 
 
@@ -104,7 +104,7 @@ public final class MantydbossdeadEntity extends KinoraGeoPathfinder {
     }
 
     @Override
-    protected RawAnimation loopAnimation(AnimationState<?> state) {
+    protected RawAnimation loopAnimation(AnimationTest<?> state) {
         return RawAnimation.begin().thenLoop("deathloop");
     }
 

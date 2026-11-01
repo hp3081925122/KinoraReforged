@@ -1,7 +1,7 @@
 package com.kinorareforged;
 
-import software.bernie.geckolib.animation.AnimationState;
-import software.bernie.geckolib.animation.RawAnimation;
+import com.geckolib.animation.state.AnimationTest;
+import com.geckolib.animation.RawAnimation;
 
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.network.chat.Component;
@@ -36,9 +36,9 @@ public final class MantydBloomEntity extends KinoraGeoMonster {
     }
 
     @Override
-    public boolean hurt(DamageSource source, float amount) {
+    public boolean hurtServer(ServerLevel level, DamageSource source, float amount) {
         if (source.is(DamageTypeTags.IS_DROWNING)) return false;
-        return super.hurt(source, amount);
+        return super.hurtServer(level, source, amount);
     }
 
     @Override
@@ -49,11 +49,11 @@ public final class MantydBloomEntity extends KinoraGeoMonster {
 
 
     @Override
-    public void customServerAiStep() {
-        super.customServerAiStep();
-        if (!level().isClientSide) {
+    protected void customServerAiStep(net.minecraft.server.level.ServerLevel serverLevel) {
+        super.customServerAiStep(serverLevel);
+        {
             addEffect(new MobEffectInstance(MobEffects.GLOWING, 80, 1, false, false));
-            int ia = getPersistentData().getInt("IA") + 1;
+            int ia = getPersistentData().getInt("IA").orElse(0) + 1;
             getPersistentData().putInt("IA", ia);
             if (ia == 20 && level() instanceof ServerLevel server) {
                 server.getServer().getPlayerList().broadcastSystemMessage(Component.translatable("message.kinora_reforged.bloom_appeared"), false);
@@ -63,7 +63,7 @@ public final class MantydBloomEntity extends KinoraGeoMonster {
                     server.sendParticles(ParticleTypes.HAPPY_VILLAGER, getX(), getY(), getZ(), 600, 8.0D, 6.0D, 8.0D, 0.5D);
                 }
                 for (BossMantydEntity boss : level().getEntitiesOfClass(BossMantydEntity.class, new AABB(blockPosition()).inflate(24.0D))) {
-                    boss.addEffect(new MobEffectInstance(MobEffects.HEAL, 1, 4, false, false));
+                    boss.addEffect(new MobEffectInstance(MobEffects.INSTANT_HEALTH, 1, 4, false, false));
                 }
             }
             if (ia == 105) {
@@ -79,7 +79,7 @@ public final class MantydBloomEntity extends KinoraGeoMonster {
     }
 
     @Override
-    public boolean canBeCollidedWith() {
+    public boolean canBeCollidedWith(Entity other) {
         return true;
     }
 
@@ -94,7 +94,7 @@ public final class MantydBloomEntity extends KinoraGeoMonster {
     }
 
     @Override
-    protected RawAnimation loopAnimation(AnimationState<?> state) {
+    protected RawAnimation loopAnimation(AnimationTest<?> state) {
         return RawAnimation.begin().thenLoop("idle");
     }
 

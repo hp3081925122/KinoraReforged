@@ -1,7 +1,7 @@
 package com.kinorareforged;
 
-import software.bernie.geckolib.animation.AnimationState;
-import software.bernie.geckolib.animation.RawAnimation;
+import com.geckolib.animation.state.AnimationTest;
+import com.geckolib.animation.RawAnimation;
 
 import java.util.EnumSet;
 import java.util.Locale;
@@ -19,7 +19,7 @@ import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.ai.attributes.AttributeSupplier;
 import net.minecraft.world.entity.ai.attributes.Attributes;
-import net.minecraft.world.entity.MobSpawnType;
+import net.minecraft.world.entity.EntitySpawnReason;
 import net.minecraft.world.entity.ai.goal.FloatGoal;
 import net.minecraft.world.entity.ai.goal.Goal;
 import net.minecraft.world.entity.ai.goal.MeleeAttackGoal;
@@ -35,7 +35,7 @@ import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
 
 public final class BossMantydEntity extends KinoraGeoMonster {
-    private final ServerBossEvent bossInfo = new ServerBossEvent(getDisplayName(), BossEvent.BossBarColor.PINK, BossEvent.BossBarOverlay.NOTCHED_6);
+    private final ServerBossEvent bossInfo = new ServerBossEvent(getUUID(), getDisplayName(), BossEvent.BossBarColor.PINK, BossEvent.BossBarOverlay.NOTCHED_6);
     private int attackAge = -1;
     private String attackType = "";
     private int bloomTimer = -1;
@@ -57,9 +57,9 @@ public final class BossMantydEntity extends KinoraGeoMonster {
     }
 
     @Override
-    public boolean hurt(DamageSource source, float amount) {
+    public boolean hurtServer(net.minecraft.server.level.ServerLevel level, DamageSource source, float amount) {
         if (source.is(DamageTypeTags.IS_FALL)) return false;
-        return super.hurt(source, amount);
+        return super.hurtServer(level, source, amount);
     }
 
     @Override
@@ -71,7 +71,7 @@ public final class BossMantydEntity extends KinoraGeoMonster {
     }
 
     @Override
-    public boolean doHurtTarget(Entity target) {
+    public boolean doHurtTarget(net.minecraft.server.level.ServerLevel level, Entity target) {
         return false;
     }
 
@@ -89,14 +89,14 @@ public final class BossMantydEntity extends KinoraGeoMonster {
     }
 
     @Override
-    public boolean canChangeDimensions(Level oldLevel, Level newLevel) {
+    public boolean canUsePortal(boolean ignorePassenger) {
         return false;
     }
 
     @Override
     protected void dropCustomDeathLoot(net.minecraft.server.level.ServerLevel level, DamageSource source, boolean recentlyHit) {
         super.dropCustomDeathLoot(level, source, recentlyHit);
-        spawnAtLocation(new net.minecraft.world.item.ItemStack(ModItems.ANCESTRAL_BAG.get()));
+        spawnAtLocation(level, new net.minecraft.world.item.ItemStack(ModItems.ANCESTRAL_BAG.get()));
     }
 
     @Override
@@ -111,21 +111,21 @@ public final class BossMantydEntity extends KinoraGeoMonster {
     }
 
     @Override
-    public void customServerAiStep() {
-        super.customServerAiStep();
-        if (!level().isClientSide) {
+    protected void customServerAiStep(net.minecraft.server.level.ServerLevel serverLevel) {
+        super.customServerAiStep(serverLevel);
+        {
             applyConfiguredAttributesOnce();
             tickAmbientParticles();
             tickPendingBloom();
             LivingEntity target = getTarget();
             if (target != null) {
-                getPersistentData().putDouble("IA", getPersistentData().getDouble("IA") + 1.0D);
+                getPersistentData().putDouble("IA", getPersistentData().getDouble("IA").orElse(0.0D) + 1.0D);
                 tickCombat(target);
             } else if (attackAge >= 0) {
                 attackAge++;
                 tickAttack(null);
             }
-            if (getPersistentData().getDouble("IA") >= 740.0D) {
+            if (getPersistentData().getDouble("IA").orElse(0.0D) >= 740.0D) {
                 getPersistentData().putDouble("IA", 0.0D);
             }
             bossInfo.setProgress(getHealth() / getMaxHealth());
@@ -139,7 +139,7 @@ public final class BossMantydEntity extends KinoraGeoMonster {
             tickAttack(target);
             return;
         }
-        int ia = (int) getPersistentData().getDouble("IA");
+        int ia = getPersistentData().getDouble("IA").orElse(0.0D).intValue();
         if (ia == 40 || ia == 360) {
             stopMusic();
             level().playSound(null, blockPosition(), ModSounds.KINORA_BOSS_THEME.get(), SoundSource.MUSIC, 2.0F, 1.0F);
@@ -363,14 +363,14 @@ public final class BossMantydEntity extends KinoraGeoMonster {
         net.minecraft.sounds.SoundEvent sound = sweep ? net.minecraft.sounds.SoundEvents.PLAYER_ATTACK_SWEEP : net.minecraft.sounds.SoundEvents.GENERIC_EXPLODE.value();
         level().playSound(null, blockPosition(), sound, SoundSource.NEUTRAL, 1.5F, pitch);
         for (Player target : level().getEntitiesOfClass(Player.class, new AABB(center, center).inflate(radius))) {
-            target.hurt(damageSources().mobAttack(this), skillDamage(originalDamage));
+            if (level() instanceof net.minecraft.server.level.ServerLevel server) target.hurtServer(server, damageSources().mobAttack(this), skillDamage(originalDamage));
         }
     }
 
     private void dashToward(LivingEntity target) {
         Vec3 delta = target.position().subtract(position());
         setDeltaMovement(delta.x * 0.25D, delta.y * 0.25D + 0.05D, delta.z * 0.25D);
-        hasImpulse = true;
+        needsSync = true;
     }
 
     private void spawnArrows(int count) {
@@ -393,7 +393,7 @@ public final class BossMantydEntity extends KinoraGeoMonster {
     private void tickPendingBloom() {
         if (bloomTimer < 0) return;
         if (bloomTimer-- == 0 && level() instanceof net.minecraft.server.level.ServerLevel server) {
-            MantydBloomEntity bloom = ModEntities.MANTYD_BLOOM.get().spawn(server, bloomPos, MobSpawnType.MOB_SUMMONED);
+            MantydBloomEntity bloom = ModEntities.MANTYD_BLOOM.get().spawn(server, bloomPos, EntitySpawnReason.MOB_SUMMONED);
             if (bloom != null) {
                 bloom.setDeltaMovement(0.0D, 0.0D, 0.0D);
             }
@@ -418,12 +418,14 @@ public final class BossMantydEntity extends KinoraGeoMonster {
     @Override
     protected void tickDeath() {
         deathTime++;
-        if (deathTime < 100 || level().isClientSide || deathReplacementSpawned) return;
+        if (deathTime < 100 || level().isClientSide() || deathReplacementSpawned) return;
         deathReplacementSpawned = true;
         if (level() instanceof net.minecraft.server.level.ServerLevel server) {
-            MantydbossdeadEntity replacement = ModEntities.MANTYDBOSSDEAD.get().create(server);
+            MantydbossdeadEntity replacement = ModEntities.MANTYDBOSSDEAD.get().create(server, EntitySpawnReason.MOB_SUMMONED);
             if (replacement != null) {
-                replacement.moveTo(getX(), getY(), getZ(), getYRot(), getXRot());
+                replacement.setPos(getX(), getY(), getZ());
+                replacement.setYRot(getYRot());
+                replacement.setXRot(getXRot());
                 server.addFreshEntity(replacement);
             }
             stopMusic();
@@ -432,7 +434,7 @@ public final class BossMantydEntity extends KinoraGeoMonster {
     }
 
     @Override
-    public void addAdditionalSaveData(CompoundTag tag) {
+    protected void addAdditionalSaveData(net.minecraft.world.level.storage.ValueOutput tag) {
         super.addAdditionalSaveData(tag);
         tag.putInt("KinoraAttackAge", attackAge);
         tag.putString("KinoraAttackType", attackType);
@@ -442,18 +444,18 @@ public final class BossMantydEntity extends KinoraGeoMonster {
     }
 
     @Override
-    public void readAdditionalSaveData(CompoundTag tag) {
+    protected void readAdditionalSaveData(net.minecraft.world.level.storage.ValueInput tag) {
         super.readAdditionalSaveData(tag);
-        attackAge = tag.getInt("KinoraAttackAge");
-        attackType = tag.getString("KinoraAttackType").toLowerCase(Locale.ROOT);
-        bloomTimer = tag.getInt("KinoraBloomTimer");
-        bloomPos = tag.contains("KinoraBloomPos") ? BlockPos.of(tag.getLong("KinoraBloomPos")) : blockPosition();
-        deathReplacementSpawned = tag.getBoolean("KinoraDeathReplacementSpawned");
+        attackAge = tag.getIntOr("KinoraAttackAge", -1);
+        attackType = tag.getStringOr("KinoraAttackType", "").toLowerCase(Locale.ROOT);
+        bloomTimer = tag.getIntOr("KinoraBloomTimer", -1);
+        bloomPos = tag.getLong("KinoraBloomPos").map(BlockPos::of).orElseGet(this::blockPosition);
+        deathReplacementSpawned = tag.getBooleanOr("KinoraDeathReplacementSpawned", false);
         if (attackAge < -1) attackAge = -1;
     }
 
     private void applyConfiguredAttributesOnce() {
-        if (getPersistentData().getBoolean("KinoraReforgedAttributesApplied")) {
+        if (getPersistentData().getBoolean("KinoraReforgedAttributesApplied").orElse(false)) {
             return;
         }
         float healthRatio = getMaxHealth() > 0.0F ? getHealth() / getMaxHealth() : 1.0F;
@@ -489,8 +491,8 @@ public final class BossMantydEntity extends KinoraGeoMonster {
     }
 
     @Override
-    protected RawAnimation loopAnimation(AnimationState<?> state) {
-        if (state.isMoving() || !(state.getLimbSwingAmount() > -0.15F && state.getLimbSwingAmount() < 0.15F)) {
+    protected RawAnimation loopAnimation(AnimationTest<?> state) {
+        if (state.isMoving() || Math.abs(state.getDataOrDefault(KinoraAnimationData.WALK_SPEED, 0.0F)) >= 0.15F) {
             return RawAnimation.begin().thenLoop("walk");
         }
         if (isDeadOrDying()) {

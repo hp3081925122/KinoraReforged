@@ -1,7 +1,7 @@
 package com.kinorareforged;
 
-import software.bernie.geckolib.animation.AnimationState;
-import software.bernie.geckolib.animation.RawAnimation;
+import com.geckolib.animation.state.AnimationTest;
+import com.geckolib.animation.RawAnimation;
 
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.core.particles.ParticleTypes;
@@ -50,9 +50,9 @@ public final class MantydBossSpawnEntity extends KinoraGeoPathfinder {
     }
 
     @Override
-    public void customServerAiStep() {
-        super.customServerAiStep();
-        if (level().isClientSide) {
+    protected void customServerAiStep(net.minecraft.server.level.ServerLevel serverLevel) {
+        super.customServerAiStep(serverLevel);
+        if (level().isClientSide()) {
             return;
         }
         if (level() instanceof net.minecraft.server.level.ServerLevel server) {
@@ -65,7 +65,7 @@ public final class MantydBossSpawnEntity extends KinoraGeoPathfinder {
         if (introAge == 20) {
             setAnimation("spawning");
             for (net.minecraft.world.entity.LivingEntity target : level().getEntitiesOfClass(net.minecraft.world.entity.LivingEntity.class, getBoundingBox().inflate(64.0D), entity -> !(entity instanceof Player))) {
-                target.addEffect(new MobEffectInstance(MobEffects.MOVEMENT_SLOWDOWN, 255, 5, false, false));
+                target.addEffect(new MobEffectInstance(MobEffects.SLOWNESS, 255, 5, false, false));
             }
             level().playSound(null, blockPosition(), ModSounds.KINORA_INTRO_BETTER.get(), SoundSource.NEUTRAL, 2.0F, 1.0F);
             if (level() instanceof net.minecraft.server.level.ServerLevel server) {
@@ -79,7 +79,7 @@ public final class MantydBossSpawnEntity extends KinoraGeoPathfinder {
             }
         } else if (introAge == 275) {
             if (level() instanceof net.minecraft.server.level.ServerLevel server) {
-                BossMantydEntity boss = ModEntities.BOSS_MANTYD.get().spawn(server, blockPosition(), net.minecraft.world.entity.MobSpawnType.MOB_SUMMONED);
+                BossMantydEntity boss = ModEntities.BOSS_MANTYD.get().spawn(server, blockPosition(), net.minecraft.world.entity.EntitySpawnReason.MOB_SUMMONED);
                 if (boss != null) {
                     boss.setYRot(getYRot());
                     boss.setYHeadRot(getYRot());
@@ -94,19 +94,19 @@ public final class MantydBossSpawnEntity extends KinoraGeoPathfinder {
     }
 
     @Override
-    public void addAdditionalSaveData(CompoundTag tag) {
+    protected void addAdditionalSaveData(net.minecraft.world.level.storage.ValueOutput tag) {
         super.addAdditionalSaveData(tag);
         tag.putInt("KinoraIntroAge", introAge);
     }
 
     @Override
-    public void readAdditionalSaveData(CompoundTag tag) {
+    protected void readAdditionalSaveData(net.minecraft.world.level.storage.ValueInput tag) {
         super.readAdditionalSaveData(tag);
-        introAge = Math.max(0, Math.min(500, tag.getInt("KinoraIntroAge")));
+        introAge = Math.max(0, Math.min(500, tag.getIntOr("KinoraIntroAge", 0)));
     }
 
     @Override
-    public boolean canBeCollidedWith() {
+    public boolean canBeCollidedWith(net.minecraft.world.entity.Entity other) {
         return true;
     }
 
@@ -121,7 +121,7 @@ public final class MantydBossSpawnEntity extends KinoraGeoPathfinder {
     }
 
     @Override
-    protected RawAnimation loopAnimation(AnimationState<?> state) {
+    protected RawAnimation loopAnimation(AnimationTest<?> state) {
         return RawAnimation.begin().thenLoop("idlespawn");
     }
 }

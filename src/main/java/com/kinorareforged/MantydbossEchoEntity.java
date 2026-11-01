@@ -1,7 +1,7 @@
 package com.kinorareforged;
 
-import software.bernie.geckolib.animation.AnimationState;
-import software.bernie.geckolib.animation.RawAnimation;
+import com.geckolib.animation.state.AnimationTest;
+import com.geckolib.animation.RawAnimation;
 
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.nbt.CompoundTag;
@@ -43,9 +43,9 @@ public final class MantydbossEchoEntity extends KinoraGeoPathfinder {
     }
 
     @Override
-    public void customServerAiStep() {
-        super.customServerAiStep();
-        if (level().isClientSide) {
+    protected void customServerAiStep(net.minecraft.server.level.ServerLevel serverLevel) {
+        super.customServerAiStep(serverLevel);
+        if (level().isClientSide()) {
             return;
         }
         if (echoAge < 0) {
@@ -59,7 +59,7 @@ public final class MantydbossEchoEntity extends KinoraGeoPathfinder {
         if (echoAge == 81) {
             float damage = (float) Math.max(0.0D, getAttributeValue(Attributes.ATTACK_DAMAGE));
             for (Mob target : level().getEntitiesOfClass(Mob.class, new AABB(position(), position()).inflate(10.0D), mob -> mob != this)) {
-                target.hurt(damageSources().mobAttack(this), damage);
+                if (level() instanceof net.minecraft.server.level.ServerLevel server) target.hurtServer(server, damageSources().mobAttack(this), damage);
             }
             level().playSound(null, blockPosition(), SoundEvents.GENERIC_EXPLODE.value(), SoundSource.NEUTRAL, 2.0F, 0.6F);
             if (level() instanceof net.minecraft.server.level.ServerLevel server) {
@@ -82,15 +82,15 @@ public final class MantydbossEchoEntity extends KinoraGeoPathfinder {
     }
 
     @Override
-    public void addAdditionalSaveData(CompoundTag tag) {
+    protected void addAdditionalSaveData(net.minecraft.world.level.storage.ValueOutput tag) {
         super.addAdditionalSaveData(tag);
         tag.putInt("KinoraEchoAge", echoAge);
     }
 
     @Override
-    public void readAdditionalSaveData(CompoundTag tag) {
+    protected void readAdditionalSaveData(net.minecraft.world.level.storage.ValueInput tag) {
         super.readAdditionalSaveData(tag);
-        echoAge = tag.getInt("KinoraEchoAge");
+        echoAge = tag.getIntOr("KinoraEchoAge", 0);
     }
 
     @Override
@@ -112,7 +112,7 @@ public final class MantydbossEchoEntity extends KinoraGeoPathfinder {
     }
 
     @Override
-    protected RawAnimation loopAnimation(AnimationState<?> state) {
+    protected RawAnimation loopAnimation(AnimationTest<?> state) {
         return RawAnimation.begin().thenLoop("idle");
     }
 }

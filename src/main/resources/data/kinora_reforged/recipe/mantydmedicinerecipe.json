@@ -2,15 +2,9 @@
   "type": "minecraft:crafting_shapeless",
   "category": "misc",
   "ingredients": [
-    {
-      "item": "minecraft:golden_apple"
-    },
-    {
-      "item": "minecraft:honey_bottle"
-    },
-    {
-      "item": "minecraft:cherry_sapling"
-    }
+    "minecraft:golden_apple",
+    "minecraft:honey_bottle",
+    "minecraft:cherry_sapling"
   ],
   "result": {
     "count": 1,

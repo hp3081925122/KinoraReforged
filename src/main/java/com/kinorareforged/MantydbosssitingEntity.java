@@ -1,7 +1,7 @@
 package com.kinorareforged;
 
-import software.bernie.geckolib.animation.AnimationState;
-import software.bernie.geckolib.animation.RawAnimation;
+import com.geckolib.animation.state.AnimationTest;
+import com.geckolib.animation.RawAnimation;
 
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.network.chat.Component;
@@ -43,10 +43,10 @@ public final class MantydbosssitingEntity extends KinoraGeoPathfinder {
 
 
     @Override
-    public void customServerAiStep() {
-        super.customServerAiStep();
+    protected void customServerAiStep(net.minecraft.server.level.ServerLevel serverLevel) {
+        super.customServerAiStep(serverLevel);
         if (!(level() instanceof ServerLevel server)) return;
-        if (!getPersistentData().getBoolean("KinoraTalkStarted")) getPersistentData().putBoolean("KinoraTalkStarted", true);
+        if (!getPersistentData().getBoolean("KinoraTalkStarted").orElse(false)) getPersistentData().putBoolean("KinoraTalkStarted", true);
         talkAge++;
         if (talkAge == 40) say(server, 0);
         if (talkAge == 140) say(server, 1);
@@ -67,15 +67,15 @@ public final class MantydbosssitingEntity extends KinoraGeoPathfinder {
     }
 
     @Override
-    public void addAdditionalSaveData(CompoundTag tag) {
+    protected void addAdditionalSaveData(net.minecraft.world.level.storage.ValueOutput tag) {
         super.addAdditionalSaveData(tag);
         tag.putInt("KinoraTalkAge", talkAge);
     }
 
     @Override
-    public void readAdditionalSaveData(CompoundTag tag) {
+    protected void readAdditionalSaveData(net.minecraft.world.level.storage.ValueInput tag) {
         super.readAdditionalSaveData(tag);
-        talkAge = tag.getInt("KinoraTalkAge");
+        talkAge = tag.getIntOr("KinoraTalkAge", 0);
     }
 
     @Override
@@ -97,7 +97,7 @@ public final class MantydbosssitingEntity extends KinoraGeoPathfinder {
     }
 
     @Override
-    protected RawAnimation loopAnimation(AnimationState<?> state) {
+    protected RawAnimation loopAnimation(AnimationTest<?> state) {
         return RawAnimation.begin().thenLoop("sit");
     }
 }

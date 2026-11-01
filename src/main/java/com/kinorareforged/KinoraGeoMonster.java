@@ -1,25 +1,30 @@
 package com.kinorareforged;
 
-import software.bernie.geckolib.animatable.instance.AnimatableInstanceCache;
-import software.bernie.geckolib.animation.AnimatableManager;
-import software.bernie.geckolib.animation.AnimationController;
-import software.bernie.geckolib.animation.AnimationState;
-import software.bernie.geckolib.animation.PlayState;
-import software.bernie.geckolib.animation.RawAnimation;
-import software.bernie.geckolib.util.GeckoLibUtil;
-import net.minecraft.nbt.CompoundTag;
+import com.geckolib.animatable.instance.AnimatableInstanceCache;
+import com.geckolib.animatable.manager.AnimatableManager;
+import com.geckolib.animation.AnimationController;
+import com.geckolib.animation.state.AnimationTest;
+import com.geckolib.animation.object.LoopType;
+import com.geckolib.animation.object.PlayState;
+import com.geckolib.animation.state.AnimationPoint;
+import com.geckolib.animation.RawAnimation;
+import com.geckolib.util.GeckoLibUtil;
 import net.minecraft.network.syncher.EntityDataAccessor;
 import net.minecraft.network.syncher.EntityDataSerializers;
 import net.minecraft.network.syncher.SynchedEntityData;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.monster.Monster;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.level.storage.ValueInput;
+import net.minecraft.world.level.storage.ValueOutput;
 
 public abstract class KinoraGeoMonster extends Monster implements KinoraGeoEntity {
     protected static final EntityDataAccessor<String> ANIMATION = SynchedEntityData.defineId(KinoraGeoMonster.class, EntityDataSerializers.STRING);
     protected static final EntityDataAccessor<String> TEXTURE = SynchedEntityData.defineId(KinoraGeoMonster.class, EntityDataSerializers.STRING);
     private final AnimatableInstanceCache cache = GeckoLibUtil.createInstanceCache(this);
     protected String animationProcedure = "empty";
+    private int animationRequest;
+    private int handledAnimationRequest;
 
     protected KinoraGeoMonster(EntityType<? extends Monster> type, Level level) {
         super(type, level);
@@ -34,7 +39,7 @@ public abstract class KinoraGeoMonster extends Monster implements KinoraGeoEntit
 
     protected abstract String defaultTexture();
 
-    protected abstract RawAnimation loopAnimation(AnimationState<?> state);
+    protected abstract RawAnimation loopAnimation(AnimationTest<?> state);
 
     protected int animationTransitionTicks() {
         return 2;
@@ -63,48 +68,57 @@ public abstract class KinoraGeoMonster extends Monster implements KinoraGeoEntit
         if (!synced.equals("undefined")) {
             entityData.set(ANIMATION, "undefined");
             animationProcedure = synced;
+            animationRequest++;
         }
         super.tick();
     }
 
     @Override
-    public void addAdditionalSaveData(CompoundTag tag) {
-        super.addAdditionalSaveData(tag);
-        tag.putString("Texture", getTexture());
+    protected void addAdditionalSaveData(ValueOutput output) {
+        super.addAdditionalSaveData(output);
+        output.putString("Texture", getTexture());
     }
 
     @Override
-    public void readAdditionalSaveData(CompoundTag tag) {
-        super.readAdditionalSaveData(tag);
-        if (tag.contains("Texture")) {
-            setTexture(tag.getString("Texture"));
-        }
+    protected void readAdditionalSaveData(ValueInput input) {
+        super.readAdditionalSaveData(input);
+        input.getString("Texture").ifPresent(this::setTexture);
     }
 
-    private PlayState movementPredicate(AnimationState<KinoraGeoMonster> state) {
+    private PlayState movementPredicate(AnimationTest<KinoraGeoMonster> state) {
         if (animationProcedure.equals("empty")) {
             return state.setAndContinue(loopAnimation(state));
         }
         return PlayState.STOP;
     }
 
-    private PlayState procedurePredicate(AnimationState<KinoraGeoMonster> state) {
-        if (!animationProcedure.equals("empty") && state.getController().getAnimationState() == AnimationController.State.STOPPED) {
-            state.getController().setAnimation(RawAnimation.begin().thenPlay(animationProcedure));
-            if (state.getController().getAnimationState() == AnimationController.State.STOPPED) {
-                animationProcedure = "empty";
-                state.getController().forceAnimationReset();
-            }
-        } else if (animationProcedure.equals("empty")) {
+    private PlayState procedurePredicate(AnimationTest<KinoraGeoMonster> state) {
+        AnimationController<KinoraGeoMonster> controller = state.controller();
+        if (animationProcedure.equals("empty")) {
+            handledAnimationRequest = animationRequest;
+            if (controller.getCurrentRawAnimation() != null) controller.reset();
             return PlayState.STOP;
         }
-        return PlayState.CONTINUE;
+        AnimationPoint point = controller.getCurrentAnimationPoint();
+        boolean holding = point != null && point.loopType() == LoopType.HOLD_ON_LAST_FRAME;
+        boolean idle = controller.getCurrentRawAnimation() == null || controller.getTimeline() == null || (controller.hasAnimationFinished() && !holding);
+        if (!idle) return PlayState.CONTINUE;
+        if (handledAnimationRequest != animationRequest) {
+            handledAnimationRequest = animationRequest;
+            controller.reset();
+            controller.setAnimation(RawAnimation.begin().thenPlay(animationProcedure));
+            return PlayState.CONTINUE;
+        }
+        animationProcedure = "empty";
+        handledAnimationRequest = animationRequest;
+        controller.reset();
+        return PlayState.STOP;
     }
 
     @Override
     public void registerControllers(AnimatableManager.ControllerRegistrar controllers) {
-        controllers.add(new AnimationController<>(this, "movement", animationTransitionTicks(), this::movementPredicate));
-        controllers.add(new AnimationController<>(this, "procedure", animationTransitionTicks(), this::procedurePredicate));
+        controllers.add(new AnimationController<KinoraGeoMonster>("movement", animationTransitionTicks(), this::movementPredicate));
+        controllers.add(new AnimationController<KinoraGeoMonster>("procedure", animationTransitionTicks(), this::procedurePredicate));
     }
 
     @Override

@@ -24,24 +24,26 @@ public final class KinoraScythe {
     }
 
     public static void startCombo(Player player) {
-        player.getPersistentData().putInt(COMBO, 0);
-        player.getCooldowns().addCooldown(ModItems.MANTYD_SCYTHE.get(), KinoraConfig.SCYTHE_COMBO_COOLDOWN.get());
+        KinoraPlayerData.get(player).comboAge(0);
+        KinoraPlayerData.get(player).comboActive(true);
+        player.getCooldowns().addCooldown(player.getMainHandItem(), KinoraConfig.SCYTHE_COMBO_COOLDOWN.get());
     }
 
     public static void playerTick(PlayerTickEvent.Post event) {
         Player player = event.getEntity();
-        if (player.level().isClientSide || !player.getPersistentData().contains(COMBO)) {
+        if (player.level().isClientSide() || !KinoraPlayerData.get(player).comboActive()) {
             return;
         }
-        int age = player.getPersistentData().getInt(COMBO);
+        int age = KinoraPlayerData.get(player).comboAge();
         if (!player.isAlive() || !holdsScythe(player) || age > (HITS - 1) * INTERVAL) {
-            player.getPersistentData().remove(COMBO);
+            KinoraPlayerData.get(player).comboAge(0);
+            KinoraPlayerData.get(player).comboActive(false);
             return;
         }
         if (age % INTERVAL == 0) {
             comboHit(player, age / INTERVAL);
         }
-        player.getPersistentData().putInt(COMBO, age + 1);
+        KinoraPlayerData.get(player).comboAge(age + 1);
     }
 
     private static void comboHit(Player player, int hit) {
@@ -61,7 +63,7 @@ public final class KinoraScythe {
                 continue;
             }
             target.invulnerableTime = 0;
-            if (target.hurt(level.damageSources().playerAttack(player), damage)) {
+            if (target.hurtServer(level, level.damageSources().playerAttack(player), damage)) {
                 target.knockback(0.15D, -flat.x, -flat.z);
             }
         }
@@ -69,7 +71,7 @@ public final class KinoraScythe {
         level.playSound(null, player.getX(), player.getY(), player.getZ(), SoundEvents.PLAYER_ATTACK_SWEEP, SoundSource.PLAYERS, 0.9F, 1.4F + hit * 0.06F);
         float side = hit % 2 == 0 ? 1.0F : -1.0F;
         Vec3 front = origin.add(look.scale(1.3D)).add(0.0D, hit * 0.05D, 0.0D);
-        KinoraFx.slash(level, front, player.getYRot() + side * (15.0F + level.random.nextFloat() * 25.0F), player.getXRot(), side * (25.0F + level.random.nextFloat() * 30.0F), 2.8F, 7);
+        KinoraFx.slash(level, front, player.getYRot() + side * (15.0F + level.getRandom().nextFloat() * 25.0F), player.getXRot(), side * (25.0F + level.getRandom().nextFloat() * 30.0F), 2.8F, 7);
         KinoraFx.sparks(level, front.add(look.scale(0.8D)), 2, 0.5D);
         if (hit == HITS - 1) {
             KinoraFx.ring(level, player.position().add(0.0D, 0.08D, 0.0D), 3.5F, 10);
@@ -79,7 +81,7 @@ public final class KinoraScythe {
 
     public static void onAttackEntity(AttackEntityEvent event) {
         Player player = event.getEntity();
-        if (player.level().isClientSide || !holdsScythe(player) || player.getAttackStrengthScale(0.5F) < 0.9F) {
+        if (player.level().isClientSide() || !holdsScythe(player) || player.getAttackStrengthScale(0.5F) < 0.9F) {
             return;
         }
         tryWave(player, event.getTarget());
@@ -96,12 +98,12 @@ public final class KinoraScythe {
 
     private static boolean tryWave(Player player, net.minecraft.world.entity.Entity ignored) {
         long now = player.level().getGameTime();
-        long last = player.getPersistentData().getLong(WAVE);
+        long last = KinoraPlayerData.get(player).waveTick();
         long delay = Math.max(1L, (long) (player.getCurrentItemAttackStrengthDelay() * 0.9F));
         if (now - last < delay && now >= last) {
             return false;
         }
-        player.getPersistentData().putLong(WAVE, now);
+        KinoraPlayerData.get(player).waveTick(now);
         ScytheWaveEntity.launch(player, ignored);
         return true;
     }

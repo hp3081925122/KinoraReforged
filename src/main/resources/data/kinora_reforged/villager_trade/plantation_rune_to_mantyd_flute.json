@@ -1,0 +1,7 @@
+{
+  "wants": { "id": "kinora_reforged:plantation_rune" },
+  "gives": { "id": "kinora_reforged:mantyd_flute" },
+  "max_uses": 1,
+  "reputation_discount": 0.0,
+  "xp": 25
+}

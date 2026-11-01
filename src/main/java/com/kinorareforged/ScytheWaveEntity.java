@@ -36,7 +36,9 @@ public final class ScytheWaveEntity extends Projectile {
         wave.ignoredEntity = ignored == null ? -1 : ignored.getId();
         Vec3 look = player.getLookAngle();
         Vec3 start = player.getEyePosition().subtract(0.0D, 0.35D, 0.0D).add(look.scale(0.8D));
-        wave.moveTo(start.x, start.y, start.z, player.getYRot(), player.getXRot());
+        wave.setPos(start);
+        wave.setYRot(player.getYRot());
+        wave.setXRot(player.getXRot());
         wave.setDeltaMovement(look.scale(1.15D));
         level.addFreshEntity(wave);
         level.playSound(null, player.getX(), player.getY(), player.getZ(), net.minecraft.sounds.SoundEvents.PLAYER_ATTACK_SWEEP, net.minecraft.sounds.SoundSource.PLAYERS, 1.0F, 1.3F);
@@ -53,7 +55,7 @@ public final class ScytheWaveEntity extends Projectile {
         Vec3 start = position();
         Vec3 motion = getDeltaMovement();
         Vec3 end = start.add(motion);
-        if (!level().isClientSide) {
+        if (!level().isClientSide()) {
             HitResult block = level().clip(new ClipContext(start, end, ClipContext.Block.COLLIDER, ClipContext.Fluid.NONE, this));
             if (block.getType() != HitResult.Type.MISS) {
                 end = block.getLocation();
@@ -64,10 +66,10 @@ public final class ScytheWaveEntity extends Projectile {
             }
             hitAlong(start, end);
         } else if (tickCount % 2 == 0) {
-            level().addParticle(ModParticles.PETAL.get(), getX() + (random.nextDouble() - 0.5D) * 1.6D, getY(), getZ() + (random.nextDouble() - 0.5D) * 1.6D, motion.x * 0.1D, 0.02D, motion.z * 0.1D);
+            level().addParticle(ModParticles.PETAL.get(), getX() + (level().getRandom().nextDouble() - 0.5D) * 1.6D, getY(), getZ() + (level().getRandom().nextDouble() - 0.5D) * 1.6D, motion.x * 0.1D, 0.02D, motion.z * 0.1D);
         }
         setPos(end);
-        if (!level().isClientSide && tickCount >= LIFETIME) {
+        if (!level().isClientSide() && tickCount >= LIFETIME) {
             burst(end);
             discard();
         }
@@ -80,7 +82,7 @@ public final class ScytheWaveEntity extends Projectile {
             if (entity.getId() == ignoredEntity || !hitEntities.add(entity.getId())) {
                 continue;
             }
-            if (entity.hurt(damageSources().mobProjectile(this, owner instanceof LivingEntity living ? living : null), damage) && entity instanceof LivingEntity living) {
+            if (level() instanceof ServerLevel server && entity.hurtServer(server, damageSources().mobProjectile(this, owner instanceof LivingEntity living ? living : null), damage) && entity instanceof LivingEntity living) {
                 Vec3 push = getDeltaMovement().multiply(1.0D, 0.0D, 1.0D).normalize();
                 living.knockback(0.35D, -push.x, -push.z);
             }
